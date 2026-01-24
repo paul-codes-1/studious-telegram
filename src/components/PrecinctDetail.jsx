@@ -22,6 +22,35 @@ function PrecinctDetail({ precinct, onClose }) {
     </div>
   );
 
+  // Reusable race results component
+  const RaceResults = ({ results, emptyMessage = "No results available" }) => {
+    if (!results || results.length === 0) {
+      return <p className="text-gray-400 text-sm">{emptyMessage}</p>;
+    }
+    return (
+      <div className="space-y-1">
+        {results.map((candidate, idx) => (
+          <div key={idx} className="flex justify-between p-2 bg-gray-50 rounded">
+            <span className="truncate">
+              {candidate.name}
+              {candidate.party && (
+                <span className={`ml-1 text-xs ${
+                  candidate.party === 'DEM' ? 'text-blue-600' :
+                  candidate.party === 'REP' ? 'text-red-600' : 'text-gray-500'
+                }`}>
+                  ({candidate.party})
+                </span>
+              )}
+            </span>
+            <span className="font-medium ml-2 whitespace-nowrap">
+              {formatNumber(candidate.votes)} ({formatPct(candidate.pct)})
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   // Calculate margin bar width
   const marginBarWidth = Math.abs(p.margin);
   const marginIsD = p.margin < 0;
@@ -109,38 +138,81 @@ function PrecinctDetail({ precinct, onClose }) {
         </div>
       </Section>
 
-      {/* Amendment 2 */}
-      <Section title="Amendment 2 (Parks Tax)">
+      {/* Council Race - moved above parks tax */}
+      <Section title={`Council District ${p.councilDistrict}`}>
+        <RaceResults results={p.councilResults} />
+      </Section>
+
+      {/* Parks Tax (Local) */}
+      <Section title="Parks Tax (Local)">
         <div className="flex gap-2">
           <div className="flex-1 p-2 bg-green-50 rounded text-center">
             <div className="text-xs text-gray-500">FOR</div>
-            <div className="font-bold text-green-700">{formatPct(p.amendment2ForPct)}</div>
-            <div className="text-sm text-gray-500">{formatNumber(p.amendment2For)}</div>
+            <div className="font-bold text-green-700">{formatPct(p.parksTaxForPct)}</div>
+            <div className="text-sm text-gray-500">{formatNumber(p.parksTaxFor)}</div>
           </div>
           <div className="flex-1 p-2 bg-gray-50 rounded text-center">
             <div className="text-xs text-gray-500">AGAINST</div>
-            <div className="font-bold text-gray-700">{formatPct(100 - p.amendment2ForPct)}</div>
-            <div className="text-sm text-gray-500">{formatNumber(p.amendment2Against)}</div>
+            <div className="font-bold text-gray-700">{formatPct(100 - p.parksTaxForPct)}</div>
+            <div className="text-sm text-gray-500">{formatNumber(p.parksTaxAgainst)}</div>
           </div>
         </div>
       </Section>
 
-      {/* Council Race */}
-      <Section title={`Council District ${p.councilDistrict}`}>
-        {p.councilResults && p.councilResults.length > 0 ? (
-          <div className="space-y-1">
-            {p.councilResults.map((candidate, idx) => (
-              <div key={idx} className="flex justify-between p-2 bg-gray-50 rounded">
-                <span className="truncate">{candidate.name}</span>
-                <span className="font-medium ml-2">
-                  {formatNumber(candidate.votes)} ({formatPct(candidate.pct)})
-                </span>
-              </div>
-            ))}
+      {/* US Representative */}
+      <Section title="US Representative">
+        <RaceResults results={p.usRepResults} />
+      </Section>
+
+      {/* State Senator - only show if results exist */}
+      {p.stateSenatorResults && p.stateSenatorResults.length > 0 && (
+        <Section title={`State Senator (District ${p.stateSenatorDistrict})`}>
+          <RaceResults results={p.stateSenatorResults} />
+        </Section>
+      )}
+
+      {/* State Representative */}
+      <Section title={`State Representative (District ${p.stateRepDistrict})`}>
+        <RaceResults results={p.stateRepResults} />
+      </Section>
+
+      {/* School Board - only show if results exist */}
+      {p.schoolBoardResults && p.schoolBoardResults.length > 0 && (
+        <Section title={`School Board (Division ${p.schoolBoardDivision})`}>
+          <RaceResults results={p.schoolBoardResults} />
+        </Section>
+      )}
+
+      {/* Constitutional Amendment 1 */}
+      <Section title="Amendment 1">
+        <div className="flex gap-2">
+          <div className="flex-1 p-2 bg-green-50 rounded text-center">
+            <div className="text-xs text-gray-500">YES</div>
+            <div className="font-bold text-green-700">{formatPct(p.amendment1YesPct)}</div>
+            <div className="text-sm text-gray-500">{formatNumber(p.amendment1Yes)}</div>
           </div>
-        ) : (
-          <p className="text-gray-400 text-sm">No results available</p>
-        )}
+          <div className="flex-1 p-2 bg-gray-50 rounded text-center">
+            <div className="text-xs text-gray-500">NO</div>
+            <div className="font-bold text-gray-700">{formatPct(100 - p.amendment1YesPct)}</div>
+            <div className="text-sm text-gray-500">{formatNumber(p.amendment1No)}</div>
+          </div>
+        </div>
+      </Section>
+
+      {/* Constitutional Amendment 2 */}
+      <Section title="Amendment 2">
+        <div className="flex gap-2">
+          <div className="flex-1 p-2 bg-green-50 rounded text-center">
+            <div className="text-xs text-gray-500">YES</div>
+            <div className="font-bold text-green-700">{formatPct(p.amendment2YesPct)}</div>
+            <div className="text-sm text-gray-500">{formatNumber(p.amendment2Yes)}</div>
+          </div>
+          <div className="flex-1 p-2 bg-gray-50 rounded text-center">
+            <div className="text-xs text-gray-500">NO</div>
+            <div className="font-bold text-gray-700">{formatPct(100 - p.amendment2YesPct)}</div>
+            <div className="text-sm text-gray-500">{formatNumber(p.amendment2No)}</div>
+          </div>
+        </div>
       </Section>
 
       {/* Demographics */}

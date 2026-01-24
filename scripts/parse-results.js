@@ -51,10 +51,21 @@ function parseResults(text) {
           earlyVoting: 0,
           electionDay: 0,
           absentee: 0,
-          amendment2For: 0,
-          amendment2Against: 0,
+          parksTaxFor: 0,
+          parksTaxAgainst: 0,
+          amendment1Yes: 0,
+          amendment1No: 0,
+          amendment2Yes: 0,
+          amendment2No: 0,
           councilDistrict: null,
-          councilResults: []
+          councilResults: [],
+          usRepResults: [],
+          stateSenatorDistrict: null,
+          stateSenatorResults: [],
+          stateRepDistrict: null,
+          stateRepResults: [],
+          schoolBoardDivision: null,
+          schoolBoardResults: []
         };
       }
 
@@ -149,7 +160,7 @@ function parseResults(text) {
       continue;
     }
 
-    // Parse Amendment 2 (Parks Tax)
+    // Parse Parks Tax (local ballot question)
     if (line === 'AD VALOREM TAX FOR PUBLIC PARKS' && currentPrecinct) {
       const p = precincts[currentPrecinct];
       // Look for FOR and AGAINST
@@ -167,7 +178,7 @@ function parseResults(text) {
             if (lines[j] === 'AGAINST') break;
           }
           if (numbers.length >= 5) {
-            p.amendment2For = numbers[4];
+            p.parksTaxFor = numbers[4];
           }
         }
         if (lines[j] === 'AGAINST') {
@@ -182,7 +193,7 @@ function parseResults(text) {
             if (lines[j] === 'Cast Votes:') break;
           }
           if (numbers.length >= 5) {
-            p.amendment2Against = numbers[4];
+            p.parksTaxAgainst = numbers[4];
           }
           break;
         }
@@ -282,10 +293,263 @@ function parseResults(text) {
       continue;
     }
 
+    // Parse US Representative
+    if (line.includes('UNITED STATES REPRESENTATIVE') && currentPrecinct) {
+      const p = precincts[currentPrecinct];
+      if (p.usRepResults.length === 0) {
+        const candidates = parseRaceCandidates(lines, i);
+        p.usRepResults = candidates;
+      }
+      i++;
+      continue;
+    }
+
+    // Parse State Senator
+    const stateSenMatch = line.match(/STATE SENATOR (\d+)(?:th|st|nd|rd) Senatorial District/);
+    if (stateSenMatch && currentPrecinct) {
+      const p = precincts[currentPrecinct];
+      if (p.stateSenatorDistrict === null) {
+        p.stateSenatorDistrict = parseInt(stateSenMatch[1]);
+        const candidates = parseRaceCandidates(lines, i);
+        p.stateSenatorResults = candidates;
+      }
+      i++;
+      continue;
+    }
+
+    // Parse State Representative
+    const stateRepMatch = line.match(/STATE REPRESENTATIVE (\d+)(?:th|st|nd|rd) Representative District/);
+    if (stateRepMatch && currentPrecinct) {
+      const p = precincts[currentPrecinct];
+      if (p.stateRepDistrict === null) {
+        p.stateRepDistrict = parseInt(stateRepMatch[1]);
+        const candidates = parseRaceCandidates(lines, i);
+        p.stateRepResults = candidates;
+      }
+      i++;
+      continue;
+    }
+
+    // Parse Board of Education
+    const schoolMatch = line.match(/FAYETTE COUNTY BOARD of EDUCATION Educational Division (\d+)/);
+    if (schoolMatch && currentPrecinct) {
+      const p = precincts[currentPrecinct];
+      if (p.schoolBoardDivision === null) {
+        p.schoolBoardDivision = parseInt(schoolMatch[1]);
+        const candidates = parseRaceCandidates(lines, i);
+        p.schoolBoardResults = candidates;
+      }
+      i++;
+      continue;
+    }
+
+    // Parse Constitutional Amendment 2 (with header - some precincts have this format)
+    if (line === 'CONSTITUTIONAL AMENDMENT 2' && currentPrecinct) {
+      const p = precincts[currentPrecinct];
+      // Check if next line is "Choice" (header format) or "AD VALOREM" (parks tax)
+      if (lines[i+1] === 'Choice' && lines[i+3] !== 'AD VALOREM TAX FOR PUBLIC PARKS') {
+        if (p.amendment2Yes === 0 && p.amendment2No === 0) {
+          let j = i + 1;
+          while (j < lines.length) {
+            if (lines[j] === 'YES') {
+              j++;
+              let numbers = [];
+              while (j < lines.length && numbers.length < 5) {
+                const num = lines[j].match(/^(\d+)$/);
+                if (num) numbers.push(parseInt(num[1]));
+                j++;
+              }
+              if (numbers.length >= 5) p.amendment2Yes = numbers[4];
+              while (j < lines.length && lines[j].match(/^[\d.]+%$/)) j++;
+            }
+            if (lines[j] === 'NO') {
+              j++;
+              let numbers = [];
+              while (j < lines.length && numbers.length < 5) {
+                const num = lines[j].match(/^(\d+)$/);
+                if (num) numbers.push(parseInt(num[1]));
+                j++;
+              }
+              if (numbers.length >= 5) p.amendment2No = numbers[4];
+              break;
+            }
+            if (lines[j] === 'Cast Votes:' || lines[j].match(/^[A-Z]\d{3}-/)) break;
+            j++;
+          }
+        }
+        i++;
+        continue;
+      }
+    }
+
+    // Parse Constitutional Amendment 1
+    if (line === 'CONSTITUTIONAL AMENDMENT 1' && currentPrecinct) {
+      const p = precincts[currentPrecinct];
+      if (p.amendment1Yes === 0 && p.amendment1No === 0) {
+        let j = i + 1;
+        while (j < lines.length) {
+          if (lines[j] === 'YES') {
+            j++;
+            let numbers = [];
+            while (j < lines.length && numbers.length < 5) {
+              const num = lines[j].match(/^(\d+)$/);
+              if (num) numbers.push(parseInt(num[1]));
+              j++;
+              if (lines[j] === 'NO') break;
+            }
+            if (numbers.length >= 5) p.amendment1Yes = numbers[4];
+          }
+          if (lines[j] === 'NO') {
+            j++;
+            let numbers = [];
+            while (j < lines.length && numbers.length < 5) {
+              const num = lines[j].match(/^(\d+)$/);
+              if (num) numbers.push(parseInt(num[1]));
+              j++;
+              if (lines[j] === 'Cast Votes:') break;
+            }
+            if (numbers.length >= 5) p.amendment1No = numbers[4];
+            break;
+          }
+          if (lines[j] && lines[j].match(/^[A-Z]\d{3}-/)) break;
+          j++;
+        }
+
+        // Amendment 2 (state) follows immediately after Amendment 1 without a header
+        // Pattern: Overvotes: -> 5 numbers -> Absentee Mail-In -> Absentee Walk-In -> YES/NO
+        while (j < lines.length) {
+          if (lines[j] === 'Overvotes:') {
+            j++;
+            // Skip the 5 overvote numbers
+            let overvoteCount = 0;
+            while (j < lines.length && overvoteCount < 5) {
+              if (lines[j].match(/^(\d+)$/)) overvoteCount++;
+              j++;
+            }
+            // Now should be at Absentee Mail-In
+            if (lines[j] === 'Absentee Mail-In' && lines[j+1] === 'Absentee Walk-In') {
+              j += 2; // Skip to YES
+              if (lines[j] === 'YES' && p.amendment2Yes === 0) {
+                j++;
+                let numbers = [];
+                while (j < lines.length && numbers.length < 5) {
+                  const num = lines[j].match(/^(\d+)$/);
+                  if (num) numbers.push(parseInt(num[1]));
+                  j++;
+                }
+                if (numbers.length >= 5) p.amendment2Yes = numbers[4];
+                // Skip past percentage to reach NO
+                while (j < lines.length && lines[j].match(/^[\d.]+%$/)) j++;
+              }
+              if (lines[j] === 'NO') {
+                j++;
+                let numbers = [];
+                while (j < lines.length && numbers.length < 5) {
+                  const num = lines[j].match(/^(\d+)$/);
+                  if (num) numbers.push(parseInt(num[1]));
+                  j++;
+                }
+                if (numbers.length >= 5) p.amendment2No = numbers[4];
+              }
+            }
+            break;
+          }
+          if (lines[j] && lines[j].match(/^[A-Z]\d{3}-/)) break;
+          j++;
+        }
+      }
+      i++;
+      continue;
+    }
+
     i++;
   }
 
   return precincts;
+}
+
+// Helper function to parse candidates from a race section
+function parseRaceCandidates(lines, startIdx) {
+  const candidates = [];
+  let j = startIdx + 1;
+  let foundParty = false;
+
+  while (j < lines.length) {
+    const currentLine = lines[j];
+
+    if (currentLine === 'Party') {
+      foundParty = true;
+      j++;
+      continue;
+    }
+
+    if (foundParty) {
+      // Stop conditions
+      if (currentLine === 'Cast Votes:' ||
+          currentLine === 'Undervotes:' ||
+          currentLine.match(/^[A-Z]\d{3}-/) ||
+          currentLine.includes('Precinct Results Report') ||
+          currentLine.includes('STATE SENATOR') ||
+          currentLine.includes('STATE REPRESENTATIVE') ||
+          currentLine.includes('COMMONWEALTH') ||
+          currentLine.includes('CIRCUIT CLERK') ||
+          currentLine.includes('FAYETTE COUNTY BOARD') ||
+          currentLine.includes('CONSTITUTIONAL AMENDMENT') ||
+          currentLine.includes('URBAN COUNTY COUNCIL')) {
+        break;
+      }
+
+      // Skip header lines and numbers/percentages
+      if (currentLine === 'Absentee Mail-In' ||
+          currentLine === 'Absentee Walk-In' ||
+          currentLine === 'Early Voting' ||
+          currentLine === 'Election Day Voting' ||
+          currentLine === 'Total' ||
+          currentLine === 'Choice' ||
+          currentLine.match(/^(\d+)$/) ||
+          currentLine.match(/^[\d.]+%$/)) {
+        j++;
+        continue;
+      }
+
+      // Check if this looks like a candidate name (has uppercase letters and possibly party)
+      if (currentLine.match(/[A-Z]{2,}/) &&
+          !currentLine.includes('UNITED STATES') &&
+          !currentLine.includes('REPRESENTATIVE')) {
+        // Get party from next line if it's REP, DEM, etc.
+        let party = null;
+        if (lines[j + 1] && lines[j + 1].match(/^(REP|DEM|IND|LIB|KY)$/)) {
+          party = lines[j + 1];
+        }
+
+        // Get vote total
+        let k = j + 1;
+        let numbers = [];
+        while (k < lines.length && numbers.length < 5) {
+          const num = lines[k].match(/^(\d+)$/);
+          if (num) numbers.push(parseInt(num[1]));
+          k++;
+          if (lines[k] && (
+              lines[k] === 'Cast Votes:' ||
+              (lines[k].match(/[A-Z]{2,}/) && !lines[k].match(/^(REP|DEM|IND|LIB|KY|\d+|[\d.]+%)$/)))) {
+            break;
+          }
+        }
+
+        if (numbers.length >= 5) {
+          candidates.push({
+            name: currentLine,
+            party: party,
+            votes: numbers[4]
+          });
+        }
+        j = k;
+        continue;
+      }
+    }
+    j++;
+  }
+  return candidates;
 }
 
 console.log('Parsing election results...');
@@ -307,8 +571,11 @@ for (const feature of votingPrecincts.features) {
   const harrisPct = totalVotes > 0 ? ((election.harris || 0) / totalVotes * 100) : 0;
   const margin = trumpPct - harrisPct; // positive = R, negative = D
 
-  const amendment2Total = (election.amendment2For || 0) + (election.amendment2Against || 0);
-  const amendment2ForPct = amendment2Total > 0 ? ((election.amendment2For || 0) / amendment2Total * 100) : 0;
+  const parksTaxTotal = (election.parksTaxFor || 0) + (election.parksTaxAgainst || 0);
+  const parksTaxForPct = parksTaxTotal > 0 ? ((election.parksTaxFor || 0) / parksTaxTotal * 100) : 0;
+
+  const amendment2Total = (election.amendment2Yes || 0) + (election.amendment2No || 0);
+  const amendment2YesPct = amendment2Total > 0 ? ((election.amendment2Yes || 0) / amendment2Total * 100) : 0;
 
   const population = race.P0010001 || 0;
   const turnoutPct = population > 0 ? ((election.ballotsCast || 0) / population * 100) : 0;
@@ -320,6 +587,26 @@ for (const feature of votingPrecincts.features) {
     votes: c.votes,
     pct: councilTotal > 0 ? Math.round((c.votes / councilTotal * 100) * 10) / 10 : 0
   }));
+
+  // Calculate other race percentages
+  const calcRaceResults = (results) => {
+    const total = (results || []).reduce((sum, c) => sum + c.votes, 0);
+    return (results || []).map(c => ({
+      name: c.name,
+      party: c.party,
+      votes: c.votes,
+      pct: total > 0 ? Math.round((c.votes / total * 100) * 10) / 10 : 0
+    }));
+  };
+
+  const usRepResults = calcRaceResults(election.usRepResults);
+  const stateSenatorResults = calcRaceResults(election.stateSenatorResults);
+  const stateRepResults = calcRaceResults(election.stateRepResults);
+  const schoolBoardResults = calcRaceResults(election.schoolBoardResults);
+
+  // Amendment 1 percentages
+  const amendment1Total = (election.amendment1Yes || 0) + (election.amendment1No || 0);
+  const amendment1YesPct = amendment1Total > 0 ? ((election.amendment1Yes || 0) / amendment1Total * 100) : 0;
 
   // Housing calculations
   const totalUnits = occupancy.H0010001 || 0;
@@ -350,13 +637,32 @@ for (const feature of votingPrecincts.features) {
       earlyVoting: election.earlyVoting || 0,
       electionDay: election.electionDay || 0,
       absentee: election.absentee || 0,
-      // Amendment 2 (Parks Tax)
-      amendment2For: election.amendment2For || 0,
-      amendment2Against: election.amendment2Against || 0,
-      amendment2ForPct: Math.round(amendment2ForPct * 10) / 10,
+      // Parks Tax (local)
+      parksTaxFor: election.parksTaxFor || 0,
+      parksTaxAgainst: election.parksTaxAgainst || 0,
+      parksTaxForPct: Math.round(parksTaxForPct * 10) / 10,
       // Urban County Council
       councilDistrict: election.councilDistrict || feature.properties.COUNCIL,
       councilResults: councilResults,
+      // US Representative
+      usRepResults: usRepResults,
+      // State Senator
+      stateSenatorDistrict: election.stateSenatorDistrict || feature.properties.SENATORIAL,
+      stateSenatorResults: stateSenatorResults,
+      // State Representative
+      stateRepDistrict: election.stateRepDistrict || feature.properties.LEGISLATIVE,
+      stateRepResults: stateRepResults,
+      // School Board
+      schoolBoardDivision: election.schoolBoardDivision,
+      schoolBoardResults: schoolBoardResults,
+      // Constitutional Amendment 1
+      amendment1Yes: election.amendment1Yes || 0,
+      amendment1No: election.amendment1No || 0,
+      amendment1YesPct: Math.round(amendment1YesPct * 10) / 10,
+      // Constitutional Amendment 2
+      amendment2Yes: election.amendment2Yes || 0,
+      amendment2No: election.amendment2No || 0,
+      amendment2YesPct: Math.round(amendment2YesPct * 10) / 10,
       // Demographics (Census 2020)
       population: population,
       white: race.P0010003 || 0,
