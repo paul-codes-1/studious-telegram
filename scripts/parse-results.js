@@ -6,11 +6,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.join(__dirname, '..');
 
-// Load raw data files
-const resultsText = fs.readFileSync(path.join(rootDir, 'results.txt'), 'utf8');
-const votingPrecincts = JSON.parse(fs.readFileSync(path.join(rootDir, 'Voting_Precinct_1444398891930194722 (1).geojson'), 'utf8'));
-const raceData = JSON.parse(fs.readFileSync(path.join(rootDir, 'Census_2020_-_Race_by_Precinct (1).geojson'), 'utf8'));
-const occupancyData = JSON.parse(fs.readFileSync(path.join(rootDir, 'Census_2020_-_Occupancy_Status_by_Precinct.geojson'), 'utf8'));
+// Load raw data files from data-repository
+const dataDir = path.join(rootDir, 'data-repository');
+const resultsText = fs.readFileSync(path.join(dataDir, 'results.txt'), 'utf8');
+const votingPrecincts = JSON.parse(fs.readFileSync(path.join(dataDir, 'Voting_Precinct_1444398891930194722 (1).geojson'), 'utf8'));
+const raceData = JSON.parse(fs.readFileSync(path.join(dataDir, 'Census_2020_-_Race_by_Precinct (1).geojson'), 'utf8'));
+const occupancyData = JSON.parse(fs.readFileSync(path.join(dataDir, 'Census_2020_-_Occupancy_Status_by_Precinct.geojson'), 'utf8'));
 
 // Build lookup maps for census data
 const raceByCode = {};
