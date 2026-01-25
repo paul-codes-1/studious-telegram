@@ -128,6 +128,13 @@ const layerStyles = {
   }),
   shortTermRentals: () => ({
     // Point layer - handled separately
+  }),
+  treeCanopy: () => ({
+    fillColor: '#166534',
+    weight: 0.5,
+    opacity: 0.8,
+    color: '#14532d',
+    fillOpacity: 0.6
   })
 };
 
@@ -302,6 +309,14 @@ const layerTooltips = {
         <span class="text-gray-600">${p.address || ''}</span><br/>
         <span class="text-gray-500">${type}</span>
       </div>`,
+      { sticky: true }
+    );
+  },
+  treeCanopy: (feature, layer) => {
+    const p = feature.properties;
+    const type = p.TYPE || 'Tree Canopy';
+    layer.bindTooltip(
+      `<div class="font-sans text-sm"><strong>${type}</strong></div>`,
       { sticky: true }
     );
   }

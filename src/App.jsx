@@ -18,28 +18,30 @@ import parksData from './data/parks.json';
 import railroadData from './data/railroad.json';
 import schoolDistrictsData from './data/school-districts.json';
 import shortTermRentalsData from './data/short-term-rentals.json';
+import treeCanopyData from './data/tree-canopy.json';
 
 function App() {
   const [layers, setLayers] = useState({
-    redlining: true,
+    redlining: false,
     urbanServiceArea: false,
     councilDistricts: false,
     schoolDistricts: false,
     censusRace: false,
     censusOccupancy: false,
-    parks: false,
-    greenway: false,
-    bicycleNetwork: false,
+    parks: true,
+    greenway: true,
+    bicycleNetwork: true,
     railroad: false,
-    basin: false,
-    waterbodies: false,
-    waterways: false,
-    waterNetwork: false,
-    stream: false,
-    pdrProperty: false,
-    shortTermRentals: false
+    basin: true,
+    waterbodies: true,
+    waterways: true,
+    waterNetwork: true,
+    stream: true,
+    pdrProperty: true,
+    shortTermRentals: false,
+    treeCanopy: true
   });
-  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(true);
 
   const toggleLayer = (layerId) => {
     setLayers(prev => ({
@@ -86,7 +88,7 @@ function App() {
     },
     {
       id: 'schoolDistricts',
-      name: 'School Districts',
+      name: 'School Board Districts',
       data: schoolDistrictsData,
       description: 'School board district boundaries',
       category: 'Boundaries',
@@ -164,9 +166,9 @@ function App() {
     // Water
     {
       id: 'basin',
-      name: 'Watersheds',
+      name: 'Detention Basins',
       data: basinData,
-      description: 'Drainage basins',
+      description: 'Stormwater detention basins',
       category: 'Water',
       legend: [
         { color: '#38bdf8', label: 'Basin' }
@@ -232,6 +234,17 @@ function App() {
       legend: [
         { color: '#ef4444', label: 'STR' }
       ]
+    },
+    // Environment
+    {
+      id: 'treeCanopy',
+      name: 'Tree Canopy (1998)',
+      data: treeCanopyData,
+      description: 'Historic tree coverage',
+      category: 'Environment',
+      legend: [
+        { color: '#166534', label: 'Tree Canopy' }
+      ]
     }
   ];
 
@@ -256,7 +269,8 @@ function App() {
         {/* Toggle button */}
         <button
           onClick={() => setPanelOpen(!panelOpen)}
-          className="absolute top-4 right-4 z-[1001] bg-white rounded-lg shadow-lg p-3 hover:bg-gray-50 transition-colors"
+          className="absolute right-4 z-[1001] bg-white rounded-lg shadow-lg p-3 hover:bg-gray-50 transition-colors"
+          style={{ top: '85px' }}
           aria-label={panelOpen ? 'Close layers' : 'Open layers'}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
