@@ -1,61 +1,36 @@
-import { useEffect, useRef, useMemo } from 'react';
-import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
-import { getMarginColor, formatPct } from '../utils/colorScale';
+import { useMemo } from 'react';
+import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 
-// Component to handle map updates when data changes
-function MapUpdater({ data, selectedPrecinct }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (data.features.length > 0) {
-      // Calculate bounds from all features
-      const bounds = [];
-      data.features.forEach(feature => {
-        if (feature.geometry.type === 'Polygon') {
-          feature.geometry.coordinates[0].forEach(coord => {
-            bounds.push([coord[1], coord[0]]);
-          });
-        }
-      });
-      if (bounds.length > 0) {
-        map.fitBounds(bounds, { padding: [20, 20] });
-      }
-    }
-  }, []);
-
-  return null;
-}
-
-function PrecinctMap({ data, selectedPrecinct, onPrecinctSelect }) {
-  const geoJsonRef = useRef(null);
-
+function PrecinctMap({ layers }) {
   // Lexington, KY center coordinates
   const center = [38.0406, -84.5037];
 
-  // Style function for each precinct
-  const getStyle = (feature) => {
-    const isSelected = selectedPrecinct?.properties.code === feature.properties.code;
-    const margin = feature.properties.margin;
-
+  // Style function for redlining layer
+  const getRedliningStyle = (feature) => {
+    const fill = feature.properties.fill || '#888';
     return {
-      fillColor: getMarginColor(margin),
-      weight: isSelected ? 3 : 1,
+      fillColor: fill,
+      weight: 1,
       opacity: 1,
-      color: isSelected ? '#000' : '#666',
-      fillOpacity: 0.7
+      color: '#333',
+      fillOpacity: 0.6
     };
   };
 
-  // Event handlers for each feature
-  const onEachFeature = (feature, layer) => {
+  // Tooltip for redlining features
+  const onEachRedliningFeature = (feature, layer) => {
     const p = feature.properties;
+    const gradeLabels = {
+      'A': 'Best',
+      'B': 'Still Desirable',
+      'C': 'Declining',
+      'D': 'Hazardous'
+    };
 
-    // Tooltip content
     const tooltipContent = `
-      <div class="font-sans">
-        <strong>${p.name}</strong> (${p.code})<br/>
-        Margin: ${p.margin > 0 ? '+' : ''}${p.margin}%<br/>
-        Turnout: ${p.turnoutPct}%
+      <div class="font-sans text-sm">
+        <strong>Grade ${p.grade}</strong> - ${gradeLabels[p.grade] || p.category}<br/>
+        <span class="text-gray-600">${p.label}</span>
       </div>
     `;
 
@@ -63,57 +38,34 @@ function PrecinctMap({ data, selectedPrecinct, onPrecinctSelect }) {
       sticky: true,
       className: 'bg-white shadow-lg rounded px-2 py-1'
     });
-
-    // Click handler
-    layer.on('click', () => {
-      onPrecinctSelect(feature);
-    });
-
-    // Hover effects
-    layer.on('mouseover', (e) => {
-      const layer = e.target;
-      layer.setStyle({
-        weight: 2,
-        color: '#333'
-      });
-      layer.bringToFront();
-    });
-
-    layer.on('mouseout', (e) => {
-      const layer = e.target;
-      if (selectedPrecinct?.properties.code !== feature.properties.code) {
-        layer.setStyle({
-          weight: 1,
-          color: '#666'
-        });
-      }
-    });
   };
 
-  // Generate a key that changes when selection changes to force re-render
-  const geoJsonKey = useMemo(() => {
-    return `${data.features.length}-${selectedPrecinct?.properties.code || 'none'}`;
-  }, [data.features.length, selectedPrecinct]);
+  // Generate unique keys for each layer to ensure proper rendering
+  const layerKeys = useMemo(() => {
+    return layers.map(l => `${l.id}-${l.data.features.length}`);
+  }, [layers]);
 
   return (
     <MapContainer
       center={center}
-      zoom={11}
+      zoom={12}
       className="h-full w-full"
       scrollWheelZoom={true}
+      zoomControl={true}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <GeoJSON
-        key={geoJsonKey}
-        ref={geoJsonRef}
-        data={data}
-        style={getStyle}
-        onEachFeature={onEachFeature}
-      />
-      <MapUpdater data={data} selectedPrecinct={selectedPrecinct} />
+
+      {layers.map((layer, idx) => (
+        <GeoJSON
+          key={layerKeys[idx]}
+          data={layer.data}
+          style={layer.id === 'redlining' ? getRedliningStyle : undefined}
+          onEachFeature={layer.id === 'redlining' ? onEachRedliningFeature : undefined}
+        />
+      ))}
     </MapContainer>
   );
 }
