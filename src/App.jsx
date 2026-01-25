@@ -62,7 +62,7 @@ function App() {
     <div className="h-screen flex flex-col">
       {/* Header */}
       <header className="bg-gray-800 text-white px-4 py-3 flex items-center justify-between">
-        <h1 className="text-xl font-bold">Lexington Precinct Canvassing Tool</h1>
+        <h1 className="text-xl font-bold">Lexington Precinct Data Map</h1>
         <div className="flex items-center gap-4">
           <span className="text-gray-300 text-sm">
             {filteredData.features.length} of {precinctData.features.length} precincts

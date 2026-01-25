@@ -4,11 +4,25 @@ import { getMarginColor, formatPct, formatNumber } from '../utils/colorScale';
 function PrecinctTable({ data, selectedPrecinct, onPrecinctSelect }) {
   const [sortConfig, setSortConfig] = useState({ key: 'code', direction: 'asc' });
 
+  // Helper to compute council undervote percentage
+  const getCouncilUndervote = (p) => {
+    if (!p.councilResults || p.councilResults.length === 0 || !p.ballotsCast) return null;
+    const totalVotes = p.councilResults.reduce((sum, c) => sum + c.votes, 0);
+    return (1 - totalVotes / p.ballotsCast) * 100;
+  };
+
   // Sort data based on current sort configuration
   const sortedData = useMemo(() => {
     const sorted = [...data.features].sort((a, b) => {
-      const aVal = a.properties[sortConfig.key];
-      const bVal = b.properties[sortConfig.key];
+      let aVal, bVal;
+
+      if (sortConfig.key === 'councilUndervote') {
+        aVal = getCouncilUndervote(a.properties) ?? -1;
+        bVal = getCouncilUndervote(b.properties) ?? -1;
+      } else {
+        aVal = a.properties[sortConfig.key];
+        bVal = b.properties[sortConfig.key];
+      }
 
       if (typeof aVal === 'string') {
         const compare = aVal.localeCompare(bVal);
@@ -60,6 +74,7 @@ function PrecinctTable({ data, selectedPrecinct, onPrecinctSelect }) {
             <SortHeader label="Population" sortKey="population" />
             <SortHeader label="Turnout %" sortKey="turnoutPct" />
             <SortHeader label="Council" sortKey="councilDistrict" />
+            <SortHeader label="Council Undervote" sortKey="councilUndervote" />
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -109,6 +124,9 @@ function PrecinctTable({ data, selectedPrecinct, onPrecinctSelect }) {
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
                   {p.councilDistrict}
+                </td>
+                <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                  {getCouncilUndervote(p) !== null ? `${getCouncilUndervote(p).toFixed(1)}%` : '—'}
                 </td>
               </tr>
             );

@@ -1,6 +1,6 @@
-# Lexington Precinct Canvassing Tool
+# Lexington Precinct Data Map
 
-A React application for visualizing Lexington/Fayette County, KY precinct data to support campaign canvassing prioritization.
+A React application for visualizing Lexington/Fayette County, KY precinct data with election results, demographics, and local race information.
 
 ## Project Overview
 

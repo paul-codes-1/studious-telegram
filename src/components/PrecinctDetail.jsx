@@ -113,7 +113,17 @@ function PrecinctDetail({ precinct, onClose }) {
       </div>
 
       {/* Presidential Results */}
-      <Section title="Presidential Results">
+      <Section title={
+        <>
+          Presidential Results
+          <span className="relative inline-block ml-0.5 group">
+            <span className="text-gray-400 cursor-help">*</span>
+            <span className="absolute top-full right-0 mt-1 px-2 py-1 text-xs font-normal normal-case tracking-normal text-white bg-gray-800 rounded w-48 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+              Percentages do not include other candidates
+            </span>
+          </span>
+        </>
+      }>
         <div className="space-y-2">
           <div className="flex items-center justify-between p-2 bg-red-50 rounded">
             <span>Trump</span>
@@ -141,6 +151,15 @@ function PrecinctDetail({ precinct, onClose }) {
       {/* Council Race - moved above parks tax */}
       <Section title={`Council District ${p.councilDistrict}`}>
         <RaceResults results={p.councilResults} />
+        {p.councilResults && p.councilResults.length > 0 && p.ballotsCast > 0 && (() => {
+          const totalCouncilVotes = p.councilResults.reduce((sum, c) => sum + c.votes, 0);
+          const undervotePct = ((1 - totalCouncilVotes / p.ballotsCast) * 100).toFixed(1);
+          return (
+            <div className="mt-2 text-xs text-gray-500">
+              {undervotePct}% undervoted this race
+            </div>
+          );
+        })()}
       </Section>
 
       {/* Parks Tax (Local) */}

@@ -69,12 +69,12 @@ function parseResults(text) {
         };
       }
 
-      // Next line should be "X ballots cast"
+      // Next line should be "X ballots cast" (may have comma in number)
       i++;
       if (i < lines.length) {
-        const ballotsMatch = lines[i].match(/^(\d+) ballots cast$/);
+        const ballotsMatch = lines[i].match(/^([\d,]+) ballots cast$/);
         if (ballotsMatch) {
-          precincts[currentPrecinct].ballotsCast = parseInt(ballotsMatch[1]);
+          precincts[currentPrecinct].ballotsCast = parseInt(ballotsMatch[1].replace(/,/g, ''));
         }
       }
       i++;
@@ -217,9 +217,11 @@ function parseResults(text) {
       }
 
       // Find candidate names - they appear after "Party" and before "Absentee Mail-In" or numbers
+      // NOTE: Due to page breaks, candidate names sometimes appear AFTER the vote numbers
       let j = i + 1;
       let foundParty = false;
       let candidates = [];
+      let castVotesTotal = null;
 
       while (j < lines.length) {
         const currentLine = lines[j];
@@ -232,13 +234,27 @@ function parseResults(text) {
 
         // After seeing Party, look for candidate names
         if (foundParty) {
-          // Stop at Cast Votes or new section
-          if (currentLine === 'Cast Votes:' ||
-              currentLine === 'Undervotes:' ||
-              currentLine.match(/^[A-Z]\d{3}-/) ||
+          // Stop at new precinct or next major section
+          if (currentLine.match(/^[A-Z]\d{3}-/) ||
               currentLine.includes('FAYETTE COUNTY BOARD') ||
               currentLine.includes('Precinct Results Report')) {
             break;
+          }
+
+          // Capture Cast Votes total to use for page-break candidates
+          if (currentLine === 'Cast Votes:') {
+            let k = j + 1;
+            let numbers = [];
+            while (k < lines.length && numbers.length < 5) {
+              const num = lines[k].match(/^(\d+)$/);
+              if (num) numbers.push(parseInt(num[1]));
+              k++;
+            }
+            if (numbers.length >= 5) {
+              castVotesTotal = numbers[4];
+            }
+            j = k;
+            continue;
           }
 
           // Skip header lines and numbers/percentages
@@ -247,6 +263,8 @@ function parseResults(text) {
               currentLine === 'Early Voting' ||
               currentLine === 'Election Day Voting' ||
               currentLine === 'Total' ||
+              currentLine === 'Undervotes:' ||
+              currentLine === 'Overvotes:' ||
               currentLine.match(/^(\d+)$/) ||
               currentLine.match(/^[\d.]+%$/)) {
             j++;
@@ -255,9 +273,11 @@ function parseResults(text) {
 
           // This should be a candidate name - look like "Name NAME" or "Name NAME (W)"
           if (currentLine.match(/[A-Z]{2,}/) && !currentLine.includes('URBAN') && !currentLine.includes('COUNCIL')) {
-            // Found a candidate name - now get their vote total
+            // Found a candidate name - check if votes come after or we need to use Cast Votes total
             let k = j + 1;
             let numbers = [];
+
+            // Look ahead for numbers (normal case)
             while (k < lines.length && numbers.length < 5) {
               const num = lines[k].match(/^(\d+)$/);
               if (num) {
@@ -267,17 +287,30 @@ function parseResults(text) {
               // Stop if we hit another candidate, Cast Votes, or end of section
               if (lines[k] && (
                   lines[k] === 'Cast Votes:' ||
-                  (lines[k].match(/[A-Z]{2,}/) && !lines[k].match(/^(\d+|[\d.]+%)$/)))) {
+                  lines[k] === 'Undervotes:' ||
+                  lines[k].match(/^[A-Z]\d{3}-/) ||
+                  (lines[k].match(/[A-Z]{2,}/) && !lines[k].match(/^(REP|DEM|IND|LIB|KY|\d+|[\d.]+%)$/)))) {
                 break;
               }
             }
+
             if (numbers.length >= 5) {
               candidates.push({
                 name: currentLine,
                 votes: numbers[4] // Total
               });
+              j = k;
+            } else if (castVotesTotal !== null && candidates.length === 0) {
+              // Page break case: candidate name appears after Cast Votes
+              // Use Cast Votes total as the vote count (single candidate race)
+              candidates.push({
+                name: currentLine,
+                votes: castVotesTotal
+              });
+              j++;
+            } else {
+              j++;
             }
-            j = k;
             continue;
           }
         }

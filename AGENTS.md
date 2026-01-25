@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides guidance for AI agents working on the Lexington Precinct Canvassing Tool.
+This document provides guidance for AI agents working on the Lexington Precinct Data Map.
 
 ## Quick Start for Agents
 
