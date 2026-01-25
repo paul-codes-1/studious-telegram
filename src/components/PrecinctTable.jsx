@@ -61,8 +61,8 @@ function PrecinctTable({ data, selectedPrecinct, onPrecinctSelect }) {
   };
 
   return (
-    <div className="h-full overflow-auto bg-white">
-      <table className="min-w-full divide-y divide-gray-200">
+    <div className="bg-white">
+      <table style={{ minWidth: '900px', width: '100%' }} className="divide-y divide-gray-200">
         <thead className="bg-gray-50 sticky top-0">
           <tr>
             <SortHeader label="Code" sortKey="code" />
