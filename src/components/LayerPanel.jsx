@@ -23,7 +23,11 @@ function LayerPanel({ layers, activeLayerIds, onToggle, mobile }) {
                       <div key={i} className="flex items-center gap-2 text-sm">
                         <span
                           className="w-4 h-4 rounded"
-                          style={{ backgroundColor: item.color, opacity: 0.7 }}
+                          style={{
+                            backgroundColor: item.color,
+                            opacity: 0.7,
+                            border: item.border ? '1px solid #ccc' : 'none'
+                          }}
                         />
                         <span className="text-gray-600">{item.label}</span>
                       </div>
@@ -60,7 +64,11 @@ function LayerPanel({ layers, activeLayerIds, onToggle, mobile }) {
                   <div key={i} className="flex items-center gap-2 text-xs">
                     <span
                       className="w-3 h-3 rounded"
-                      style={{ backgroundColor: item.color, opacity: 0.7 }}
+                      style={{
+                        backgroundColor: item.color,
+                        opacity: 0.7,
+                        border: item.border ? '1px solid #ccc' : 'none'
+                      }}
                     />
                     <span className="text-gray-500">{item.label}</span>
                   </div>

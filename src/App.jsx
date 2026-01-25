@@ -8,16 +8,36 @@ import waterNetworkData from './data/water-network.json';
 import waterbodiesData from './data/waterbodies.json';
 import waterwaysData from './data/waterways.json';
 import streamData from './data/stream.json';
+import basinData from './data/basin.json';
+import bicycleNetworkData from './data/bicycle-network.json';
+import censusOccupancyData from './data/census-occupancy.json';
+import censusRaceData from './data/census-race.json';
+import councilDistrictsData from './data/council-districts.json';
+import pdrPropertyData from './data/pdr-property.json';
+import parksData from './data/parks.json';
+import railroadData from './data/railroad.json';
+import schoolDistrictsData from './data/school-districts.json';
+import shortTermRentalsData from './data/short-term-rentals.json';
 
 function App() {
   const [layers, setLayers] = useState({
     redlining: true,
     urbanServiceArea: false,
+    councilDistricts: false,
+    schoolDistricts: false,
+    censusRace: false,
+    censusOccupancy: false,
+    parks: false,
     greenway: false,
+    bicycleNetwork: false,
+    railroad: false,
+    basin: false,
     waterbodies: false,
     waterways: false,
     waterNetwork: false,
-    stream: false
+    stream: false,
+    pdrProperty: false,
+    shortTermRentals: false
   });
   const [panelOpen, setPanelOpen] = useState(false);
 
@@ -29,11 +49,13 @@ function App() {
   };
 
   const layerConfigs = [
+    // Historical
     {
       id: 'redlining',
       name: 'Redlining (1930s)',
       data: redliningData,
       description: 'HOLC residential security grades',
+      category: 'Historical',
       legend: [
         { color: '#76a865', label: 'A - Best' },
         { color: '#7cb5bd', label: 'B - Still Desirable' },
@@ -41,22 +63,113 @@ function App() {
         { color: '#d9838d', label: 'D - Hazardous' }
       ]
     },
+    // Boundaries
     {
       id: 'urbanServiceArea',
-      name: 'Urban Service Area (2025)',
+      name: 'Urban Service Area',
       data: urbanServiceAreaData,
-      description: 'City service boundary',
+      description: 'City service boundary (2025)',
+      category: 'Boundaries',
       legend: [
         { color: '#6366f1', label: 'Service Area' }
+      ]
+    },
+    {
+      id: 'councilDistricts',
+      name: 'Council Districts',
+      data: councilDistrictsData,
+      description: 'City council district boundaries',
+      category: 'Boundaries',
+      legend: [
+        { color: '#f97316', label: 'District' }
+      ]
+    },
+    {
+      id: 'schoolDistricts',
+      name: 'School Districts',
+      data: schoolDistrictsData,
+      description: 'School board district boundaries',
+      category: 'Boundaries',
+      legend: [
+        { color: '#a855f7', label: 'District' }
+      ]
+    },
+    // Demographics
+    {
+      id: 'censusRace',
+      name: 'Census - Race',
+      data: censusRaceData,
+      description: 'Population by race (2020)',
+      category: 'Demographics',
+      legend: [
+        { color: '#000000', label: '0% White' },
+        { color: '#888888', label: '50% White' },
+        { color: '#ffffff', label: '100% White', border: true }
+      ]
+    },
+    {
+      id: 'censusOccupancy',
+      name: 'Census - Occupancy',
+      data: censusOccupancyData,
+      description: 'Housing occupancy status (2020)',
+      category: 'Demographics',
+      legend: [
+        { color: '#ef4444', label: '0% Occupied' },
+        { color: '#a7a732', label: '50% Occupied' },
+        { color: '#22c55e', label: '100% Occupied' }
+      ]
+    },
+    // Parks & Recreation
+    {
+      id: 'parks',
+      name: 'Parks',
+      data: parksData,
+      description: 'City parks',
+      category: 'Recreation',
+      legend: [
+        { color: '#16a34a', label: 'Park' }
       ]
     },
     {
       id: 'greenway',
       name: 'Greenways',
       data: greenwayData,
-      description: 'Parks, trails & conservation areas',
+      description: 'Trails & conservation areas',
+      category: 'Recreation',
       legend: [
         { color: '#22c55e', label: 'Greenway' }
+      ]
+    },
+    // Transportation
+    {
+      id: 'bicycleNetwork',
+      name: 'Bicycle Network',
+      data: bicycleNetworkData,
+      description: 'Bike lanes and paths',
+      category: 'Transportation',
+      legend: [
+        { color: '#f59e0b', label: 'Bike Route' }
+      ]
+    },
+    {
+      id: 'railroad',
+      name: 'Railroads',
+      data: railroadData,
+      description: 'Railroad lines',
+      category: 'Transportation',
+      legend: [
+        { color: '#78716c', label: 'Railroad' }
+      ]
+    },
+    // Water
+    {
+      id: 'basin',
+      name: 'Watersheds',
+      data: basinData,
+      description: 'Drainage basins',
+      category: 'Water',
+      legend: [
+        { color: '#38bdf8', label: 'Basin' }
       ]
     },
     {
@@ -64,6 +177,7 @@ function App() {
       name: 'Water Bodies',
       data: waterbodiesData,
       description: 'Lakes, ponds & reservoirs',
+      category: 'Water',
       legend: [
         { color: '#0ea5e9', label: 'Water Body' }
       ]
@@ -73,6 +187,7 @@ function App() {
       name: 'Waterways',
       data: waterwaysData,
       description: 'Streams & creeks',
+      category: 'Water',
       legend: [
         { color: '#0284c7', label: 'Stream' }
       ]
@@ -81,18 +196,41 @@ function App() {
       id: 'waterNetwork',
       name: 'Water Network',
       data: waterNetworkData,
-      description: 'Named streams & waterways',
+      description: 'Named streams',
+      category: 'Water',
       legend: [
         { color: '#1d4ed8', label: 'Named Stream' }
       ]
     },
     {
       id: 'stream',
-      name: 'Streams',
+      name: 'Streams (NHD)',
       data: streamData,
       description: 'NHD stream flowlines',
+      category: 'Water',
       legend: [
         { color: '#06b6d4', label: 'Stream' }
+      ]
+    },
+    // Land Use
+    {
+      id: 'pdrProperty',
+      name: 'PDR Properties',
+      data: pdrPropertyData,
+      description: 'Purchase of Development Rights',
+      category: 'Land Use',
+      legend: [
+        { color: '#84cc16', label: 'PDR Property' }
+      ]
+    },
+    {
+      id: 'shortTermRentals',
+      name: 'Short-Term Rentals',
+      data: shortTermRentalsData,
+      description: 'Licensed STR locations',
+      category: 'Land Use',
+      legend: [
+        { color: '#ef4444', label: 'STR' }
       ]
     }
   ];
@@ -105,7 +243,7 @@ function App() {
       />
 
       {/* Desktop: Small overlay panel on right */}
-      <div className="hidden md:block absolute top-4 right-4 z-[1000]">
+      <div className="hidden md:block absolute top-4 right-4 z-[1000] max-h-[calc(100vh-2rem)] overflow-y-auto">
         <LayerPanel
           layers={layerConfigs}
           activeLayerIds={layers}
