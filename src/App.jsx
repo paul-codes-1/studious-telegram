@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PrecinctMap from './components/PrecinctMap';
 import LayerPanel from './components/LayerPanel';
 import redliningData from './data/redlining.json';
@@ -18,7 +18,6 @@ import parksData from './data/parks.json';
 import railroadData from './data/railroad.json';
 import schoolDistrictsData from './data/school-districts.json';
 import shortTermRentalsData from './data/short-term-rentals.json';
-import treeCanopyData from './data/tree-canopy.json';
 
 function App() {
   const [layers, setLayers] = useState({
@@ -42,6 +41,17 @@ function App() {
     treeCanopy: true
   });
   const [panelOpen, setPanelOpen] = useState(true);
+  const [treeCanopyData, setTreeCanopyData] = useState(null);
+
+  // Load tree canopy data dynamically when enabled
+  useEffect(() => {
+    if (layers.treeCanopy && !treeCanopyData) {
+      fetch('/tree-canopy.json')
+        .then(res => res.json())
+        .then(data => setTreeCanopyData(data))
+        .catch(err => console.error('Failed to load tree canopy data:', err));
+    }
+  }, [layers.treeCanopy, treeCanopyData]);
 
   const toggleLayer = (layerId) => {
     setLayers(prev => ({
@@ -239,9 +249,10 @@ function App() {
     {
       id: 'treeCanopy',
       name: 'Tree Canopy (1998)',
-      data: treeCanopyData,
+      data: treeCanopyData || { type: 'FeatureCollection', features: [] },
       description: 'Historic tree coverage',
       category: 'Environment',
+      loading: layers.treeCanopy && !treeCanopyData,
       legend: [
         { color: '#166534', label: 'Tree Canopy' }
       ]
