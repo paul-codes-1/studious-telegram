@@ -2,10 +2,22 @@ import { useState } from 'react';
 import PrecinctMap from './components/PrecinctMap';
 import LayerPanel from './components/LayerPanel';
 import redliningData from './data/redlining.json';
+import greenwayData from './data/greenway.json';
+import urbanServiceAreaData from './data/urban-service-area.json';
+import waterNetworkData from './data/water-network.json';
+import waterbodiesData from './data/waterbodies.json';
+import waterwaysData from './data/waterways.json';
+import streamData from './data/stream.json';
 
 function App() {
   const [layers, setLayers] = useState({
-    redlining: true
+    redlining: true,
+    urbanServiceArea: false,
+    greenway: false,
+    waterbodies: false,
+    waterways: false,
+    waterNetwork: false,
+    stream: false
   });
   const [panelOpen, setPanelOpen] = useState(false);
 
@@ -27,6 +39,60 @@ function App() {
         { color: '#7cb5bd', label: 'B - Still Desirable' },
         { color: '#d9d639', label: 'C - Declining' },
         { color: '#d9838d', label: 'D - Hazardous' }
+      ]
+    },
+    {
+      id: 'urbanServiceArea',
+      name: 'Urban Service Area (2025)',
+      data: urbanServiceAreaData,
+      description: 'City service boundary',
+      legend: [
+        { color: '#6366f1', label: 'Service Area' }
+      ]
+    },
+    {
+      id: 'greenway',
+      name: 'Greenways',
+      data: greenwayData,
+      description: 'Parks, trails & conservation areas',
+      legend: [
+        { color: '#22c55e', label: 'Greenway' }
+      ]
+    },
+    {
+      id: 'waterbodies',
+      name: 'Water Bodies',
+      data: waterbodiesData,
+      description: 'Lakes, ponds & reservoirs',
+      legend: [
+        { color: '#0ea5e9', label: 'Water Body' }
+      ]
+    },
+    {
+      id: 'waterways',
+      name: 'Waterways',
+      data: waterwaysData,
+      description: 'Streams & creeks',
+      legend: [
+        { color: '#0284c7', label: 'Stream' }
+      ]
+    },
+    {
+      id: 'waterNetwork',
+      name: 'Water Network',
+      data: waterNetworkData,
+      description: 'Named streams & waterways',
+      legend: [
+        { color: '#1d4ed8', label: 'Named Stream' }
+      ]
+    },
+    {
+      id: 'stream',
+      name: 'Streams',
+      data: streamData,
+      description: 'NHD stream flowlines',
+      legend: [
+        { color: '#06b6d4', label: 'Stream' }
       ]
     }
   ];
@@ -86,7 +152,7 @@ function App() {
               </svg>
             </button>
           </div>
-          <div className="p-4">
+          <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(100% - 65px)' }}>
             <LayerPanel
               layers={layerConfigs}
               activeLayerIds={layers}
