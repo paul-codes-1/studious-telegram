@@ -165,9 +165,13 @@ const layerTooltips = {
   },
   schoolDistricts: (feature, layer) => {
     const p = feature.properties;
-    const district = p.DISTRICT || p.district || p.District || p.NAME || 'Unknown';
+    const district = p.SCHOOL || 'Unknown';
+    const rep = p.SCHREP || '';
     layer.bindTooltip(
-      `<div class="font-sans text-sm"><strong>School District ${district}</strong></div>`,
+      `<div class="font-sans text-sm">
+        <strong>School District ${district}</strong>
+        ${rep ? `<br/><span class="text-gray-600">${rep}</span>` : ''}
+      </div>`,
       { sticky: true }
     );
   },
