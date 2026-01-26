@@ -1,8 +1,14 @@
-function LayerPanel({ layers, activeLayerIds, onToggle, mobile }) {
+function LayerPanel({ layers, activeLayerIds, onToggle, onClearAll, mobile }) {
   if (mobile) {
     // Mobile: vertical list with legends
     return (
       <div className="space-y-4">
+        <button
+          onClick={onClearAll}
+          className="w-full text-sm text-gray-500 hover:text-gray-700 py-1 px-2 rounded hover:bg-gray-100 transition-colors"
+        >
+          Clear All
+        </button>
         {layers.map(layer => (
           <div key={layer.id} className="border-b border-gray-100 pb-4 last:border-0">
             <label className="flex items-start gap-3 cursor-pointer">
@@ -45,7 +51,15 @@ function LayerPanel({ layers, activeLayerIds, onToggle, mobile }) {
   // Desktop: compact card
   return (
     <div className="bg-white rounded-lg shadow-lg p-3 min-w-[200px]">
-      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Layers</div>
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Layers</div>
+        <button
+          onClick={onClearAll}
+          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          Clear All
+        </button>
+      </div>
       <div className="space-y-2">
         {layers.map(layer => (
           <div key={layer.id}>

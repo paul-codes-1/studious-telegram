@@ -60,6 +60,16 @@ function App() {
     }));
   };
 
+  const clearAllLayers = () => {
+    setLayers(prev => {
+      const cleared = {};
+      Object.keys(prev).forEach(key => {
+        cleared[key] = false;
+      });
+      return cleared;
+    });
+  };
+
   const layerConfigs = [
     // Historical
     {
@@ -93,7 +103,18 @@ function App() {
       description: 'City council district boundaries',
       category: 'Boundaries',
       legend: [
-        { color: '#f97316', label: 'District' }
+        { color: '#ef4444', label: '1' },
+        { color: '#f97316', label: '2' },
+        { color: '#f59e0b', label: '3' },
+        { color: '#eab308', label: '4' },
+        { color: '#84cc16', label: '5' },
+        { color: '#22c55e', label: '6' },
+        { color: '#14b8a6', label: '7' },
+        { color: '#06b6d4', label: '8' },
+        { color: '#0ea5e9', label: '9' },
+        { color: '#3b82f6', label: '10' },
+        { color: '#6366f1', label: '11' },
+        { color: '#8b5cf6', label: '12' }
       ]
     },
     {
@@ -103,7 +124,11 @@ function App() {
       description: 'School board district boundaries',
       category: 'Boundaries',
       legend: [
-        { color: '#a855f7', label: 'District' }
+        { color: '#ef4444', label: '1' },
+        { color: '#f59e0b', label: '2' },
+        { color: '#22c55e', label: '3' },
+        { color: '#3b82f6', label: '4' },
+        { color: '#8b5cf6', label: '5' }
       ]
     },
     // Demographics
@@ -126,8 +151,8 @@ function App() {
       description: 'Housing occupancy status (2020)',
       category: 'Demographics',
       legend: [
-        { color: '#ef4444', label: '0% Occupied' },
-        { color: '#a7a732', label: '50% Occupied' },
+        { color: '#7c3aed', label: '<70% (Outlier)' },
+        { color: '#ef4444', label: '70% Occupied' },
         { color: '#22c55e', label: '100% Occupied' }
       ]
     },
@@ -272,6 +297,7 @@ function App() {
           layers={layerConfigs}
           activeLayerIds={layers}
           onToggle={toggleLayer}
+          onClearAll={clearAllLayers}
         />
       </div>
 
@@ -320,6 +346,7 @@ function App() {
               layers={layerConfigs}
               activeLayerIds={layers}
               onToggle={toggleLayer}
+              onClearAll={clearAllLayers}
               mobile
             />
           </div>

@@ -18,20 +18,34 @@ const layerStyles = {
     fillOpacity: 0.15,
     dashArray: '5, 5'
   }),
-  councilDistricts: () => ({
-    fillColor: '#f97316',
-    weight: 2,
-    opacity: 1,
-    color: '#c2410c',
-    fillOpacity: 0.2
-  }),
-  schoolDistricts: () => ({
-    fillColor: '#a855f7',
-    weight: 2,
-    opacity: 1,
-    color: '#7e22ce',
-    fillOpacity: 0.2
-  }),
+  councilDistricts: (feature) => {
+    const district = feature.properties.DISTRICT || feature.properties.district || 1;
+    const colors = [
+      '#ef4444', '#f97316', '#f59e0b', '#eab308',
+      '#84cc16', '#22c55e', '#14b8a6', '#06b6d4',
+      '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6'
+    ];
+    const fillColor = colors[(district - 1) % colors.length];
+    return {
+      fillColor,
+      weight: 2,
+      opacity: 1,
+      color: '#333',
+      fillOpacity: 0.4
+    };
+  },
+  schoolDistricts: (feature) => {
+    const district = feature.properties.SCHOOL || 1;
+    const colors = ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6'];
+    const fillColor = colors[(district - 1) % colors.length];
+    return {
+      fillColor,
+      weight: 2,
+      opacity: 1,
+      color: '#333',
+      fillOpacity: 0.4
+    };
+  },
   censusRace: (feature) => {
     const p = feature.properties;
     const total = p.P0010001 || 0;
@@ -53,10 +67,18 @@ const layerStyles = {
     const total = p.H0010001 || 0;
     const occupied = p.H0010002 || 0;
     const pct = total > 0 ? occupied / total : 0;
-    // 0% occupied = red, 100% occupied = green
-    const r = Math.round((1 - pct) * 239);
-    const g = Math.round(pct * 167);
-    const fillColor = `rgb(${r}, ${g}, 50)`;
+    let fillColor;
+    if (pct < 0.7) {
+      // Outlier: below 70% - dark purple
+      fillColor = '#7c3aed';
+    } else {
+      // Scale 70-100% to 0-1 for color gradient
+      const scaled = (pct - 0.7) / 0.3;
+      // red (80%) -> green (100%)
+      const r = Math.round((1 - scaled) * 239);
+      const g = Math.round(scaled * 167);
+      fillColor = `rgb(${r}, ${g}, 50)`;
+    }
     return {
       fillColor,
       weight: 1,
@@ -185,16 +207,25 @@ const layerTooltips = {
   censusRace: (feature, layer) => {
     const p = feature.properties;
     const total = p.P0010001 || 0;
-    const white = p.P0010003 || 0;
-    const black = p.P0010004 || 0;
-    const asian = p.P0010006 || 0;
+    const races = [
+      { name: 'White', count: p.P0010003 || 0 },
+      { name: 'Black', count: p.P0010004 || 0 },
+      { name: 'American Indian', count: p.P0010005 || 0 },
+      { name: 'Asian', count: p.P0010006 || 0 },
+      { name: 'Pacific Islander', count: p.P0010007 || 0 },
+      { name: 'Other', count: p.P0010008 || 0 },
+      { name: 'Two or More', count: p.P0010009 || 0 }
+    ];
+    const top3 = races
+      .map(r => ({ ...r, pct: total > 0 ? Math.round(r.count / total * 100) : 0 }))
+      .sort((a, b) => b.pct - a.pct)
+      .slice(0, 3);
+    const raceLines = top3.map(r => `${r.name}: ${r.pct}%`).join('<br/>');
     layer.bindTooltip(
       `<div class="font-sans text-sm">
         <strong>${p.NAME || p.CODE}</strong><br/>
         Population: ${total.toLocaleString()}<br/>
-        White: ${white.toLocaleString()} (${total ? Math.round(white/total*100) : 0}%)<br/>
-        Black: ${black.toLocaleString()} (${total ? Math.round(black/total*100) : 0}%)<br/>
-        Asian: ${asian.toLocaleString()} (${total ? Math.round(asian/total*100) : 0}%)
+        ${raceLines}
       </div>`,
       { sticky: true }
     );
