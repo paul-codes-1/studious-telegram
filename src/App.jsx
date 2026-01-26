@@ -1,9 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PrecinctMap from './components/PrecinctMap';
 import LayerPanel from './components/LayerPanel';
 import redliningData from './data/redlining.json';
 import greenwayData from './data/greenway.json';
-import urbanServiceAreaData from './data/urban-service-area.json';
+import urbanServiceArea1958 from './data/urban-service-area-1958.json';
+import urbanServiceArea1962 from './data/urban-service-area-1962.json';
+import urbanServiceArea1964 from './data/urban-service-area-1964.json';
+import urbanServiceArea1967 from './data/urban-service-area-1967.json';
+import urbanServiceArea1980 from './data/urban-service-area-1980.json';
+import urbanServiceArea1996 from './data/urban-service-area-1996.json';
+import urbanServiceArea1998 from './data/urban-service-area-1998.json';
+import urbanServiceArea2000 from './data/urban-service-area-2000.json';
+import urbanServiceArea2001 from './data/urban-service-area-2001.json';
+import urbanServiceArea2025 from './data/urban-service-area-2025.json';
+
+const urbanServiceAreaYears = [
+  { year: 1958, data: urbanServiceArea1958 },
+  { year: 1962, data: urbanServiceArea1962 },
+  { year: 1964, data: urbanServiceArea1964 },
+  { year: 1967, data: urbanServiceArea1967 },
+  { year: 1980, data: urbanServiceArea1980 },
+  { year: 1996, data: urbanServiceArea1996 },
+  { year: 1998, data: urbanServiceArea1998 },
+  { year: 2000, data: urbanServiceArea2000 },
+  { year: 2001, data: urbanServiceArea2001 },
+  { year: 2025, data: urbanServiceArea2025 },
+];
 import waterNetworkData from './data/water-network.json';
 import waterbodiesData from './data/waterbodies.json';
 import waterwaysData from './data/waterways.json';
@@ -46,16 +68,83 @@ const presets = {
   }
 };
 
+// Color scale for urban service area years
+const getUSAColor = (year) => {
+  const colors = {
+    1958: '#fef3c7', 1962: '#fde68a', 1964: '#fcd34d', 1967: '#fbbf24',
+    1980: '#f59e0b', 1996: '#d97706', 1998: '#b45309', 2000: '#92400e',
+    2001: '#78350f', 2025: '#451a03'
+  };
+  return colors[year] || '#6366f1';
+};
+
 function App() {
   const [layers, setLayers] = useState(presets.zoning.layers);
   const [activePreset, setActivePreset] = useState('zoning');
   const [panelOpen, setPanelOpen] = useState(true);
   const [treeCanopyData, setTreeCanopyData] = useState(null);
+  const [usaExpanded, setUsaExpanded] = useState(false);
+  const [usaYear, setUsaYear] = useState(2025);
+  const [usaPrevYear, setUsaPrevYear] = useState(null);
+  const [usaTimelapse, setUsaTimelapse] = useState(false);
+  const [usaTransition, setUsaTransition] = useState(false);
+  const timelapseRef = useRef(null);
 
   const applyPreset = (presetKey) => {
     setLayers(presets[presetKey].layers);
     setActivePreset(presetKey);
   };
+
+  const startTimelapse = () => {
+    setUsaTimelapse(true);
+    setPanelOpen(false);
+    // Clear all layers except Urban Service Area
+    setLayers(prev => {
+      const cleared = {};
+      Object.keys(prev).forEach(key => {
+        cleared[key] = key === 'urbanServiceArea';
+      });
+      return cleared;
+    });
+  };
+
+  const stopTimelapse = () => {
+    setUsaTimelapse(false);
+    setUsaPrevYear(null);
+    setUsaTransition(false);
+  };
+
+  // Urban Service Area timelapse effect
+  useEffect(() => {
+    if (usaTimelapse && layers.urbanServiceArea) {
+      const years = urbanServiceAreaYears.map(y => y.year);
+      timelapseRef.current = setInterval(() => {
+        setUsaYear(prev => {
+          const currentIdx = years.indexOf(prev);
+          const nextIdx = (currentIdx + 1) % years.length;
+          // Show both layers during transition
+          setUsaPrevYear(prev);
+          setUsaTransition(true);
+          // Clear previous layer after 500ms
+          setTimeout(() => {
+            setUsaPrevYear(null);
+            setUsaTransition(false);
+          }, 500);
+          return years[nextIdx];
+        });
+      }, 2000);
+    } else {
+      if (timelapseRef.current) {
+        clearInterval(timelapseRef.current);
+        timelapseRef.current = null;
+      }
+    }
+    return () => {
+      if (timelapseRef.current) {
+        clearInterval(timelapseRef.current);
+      }
+    };
+  }, [usaTimelapse, layers.urbanServiceArea]);
 
   // Load tree canopy data dynamically when enabled
   useEffect(() => {
@@ -102,13 +191,22 @@ function App() {
     // Boundaries
     {
       id: 'urbanServiceArea',
-      name: 'Urban Service Area',
-      data: urbanServiceAreaData,
-      description: 'City service boundary (2025)',
+      name: `Urban Service Area (${usaYear})`,
+      data: urbanServiceAreaYears.find(y => y.year === usaYear)?.data || urbanServiceArea2025,
+      description: 'City service boundary over time',
       category: 'Boundaries',
-      legend: [
-        { color: '#6366f1', label: 'Service Area' }
-      ]
+      hasYearSelector: true,
+      years: urbanServiceAreaYears.map(y => y.year),
+      selectedYear: usaYear,
+      onYearChange: setUsaYear,
+      expanded: usaExpanded,
+      onExpandToggle: () => setUsaExpanded(!usaExpanded),
+      timelapse: usaTimelapse,
+      onTimelapseToggle: usaTimelapse ? stopTimelapse : startTimelapse,
+      legend: urbanServiceAreaYears.map(y => ({
+        color: getUSAColor(y.year),
+        label: String(y.year)
+      }))
     },
     {
       id: 'councilDistricts',
@@ -316,12 +414,44 @@ function App() {
     }
   ];
 
+  // Build active layers with transition layer if needed
+  const activeLayers = () => {
+    let result = layerConfigs.filter(l => layers[l.id]);
+
+    // Add previous year layer during transition
+    if (usaPrevYear && layers.urbanServiceArea) {
+      const prevData = urbanServiceAreaYears.find(y => y.year === usaPrevYear)?.data;
+      if (prevData) {
+        result = [
+          {
+            id: 'urbanServiceAreaPrev',
+            name: `Urban Service Area (${usaPrevYear})`,
+            data: prevData,
+            selectedYear: usaPrevYear,
+            isPreviousYear: true
+          },
+          ...result
+        ];
+      }
+    }
+    return result;
+  };
+
   return (
     <div className="h-screen w-screen relative">
       {/* Full-screen map */}
       <PrecinctMap
-        layers={layerConfigs.filter(l => layers[l.id])}
+        layers={activeLayers()}
       />
+
+      {/* Year overlay during timelapse */}
+      {usaTimelapse && layers.urbanServiceArea && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-black/80 text-white px-6 py-3 rounded-lg shadow-lg">
+          <div className="text-2xl font-bold tracking-wider">
+            URBAN SERVICE AREA: {usaYear}
+          </div>
+        </div>
+      )}
 
       {/* Desktop: Small overlay panel on right */}
       <div className="hidden md:block absolute top-4 right-4 z-[1000] max-h-[calc(100vh-2rem)] overflow-y-auto">

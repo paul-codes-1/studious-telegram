@@ -10,14 +10,38 @@ const layerStyles = {
     color: '#333',
     fillOpacity: 0.6
   }),
-  urbanServiceArea: () => ({
-    fillColor: '#6366f1',
-    weight: 2,
-    opacity: 1,
-    color: '#4338ca',
-    fillOpacity: 0.15,
-    dashArray: '5, 5'
-  }),
+  urbanServiceArea: (feature, layer, { selectedYear } = {}) => {
+    const colors = {
+      1958: '#fef3c7', 1962: '#fde68a', 1964: '#fcd34d', 1967: '#fbbf24',
+      1980: '#f59e0b', 1996: '#d97706', 1998: '#b45309', 2000: '#92400e',
+      2001: '#78350f', 2025: '#451a03'
+    };
+    const fillColor = colors[selectedYear] || '#f59e0b';
+    return {
+      fillColor,
+      weight: 2,
+      opacity: 1,
+      color: '#b45309',
+      fillOpacity: 0.4,
+      dashArray: '5, 5'
+    };
+  },
+  urbanServiceAreaPrev: (feature, layer, { selectedYear } = {}) => {
+    const colors = {
+      1958: '#fef3c7', 1962: '#fde68a', 1964: '#fcd34d', 1967: '#fbbf24',
+      1980: '#f59e0b', 1996: '#d97706', 1998: '#b45309', 2000: '#92400e',
+      2001: '#78350f', 2025: '#451a03'
+    };
+    const fillColor = colors[selectedYear] || '#f59e0b';
+    return {
+      fillColor,
+      weight: 3,
+      opacity: 0.8,
+      color: '#333',
+      fillOpacity: 0.5,
+      dashArray: '10, 5'
+    };
+  },
   councilDistricts: (feature) => {
     const district = feature.properties.DISTRICT || feature.properties.district || 1;
     const colors = [
@@ -205,9 +229,15 @@ const layerTooltips = {
       { sticky: true }
     );
   },
-  urbanServiceArea: (feature, layer) => {
+  urbanServiceArea: (feature, layer, { selectedYear } = {}) => {
     layer.bindTooltip(
-      `<div class="font-sans text-sm"><strong>Urban Service Area 2025</strong></div>`,
+      `<div class="font-sans text-sm"><strong>Urban Service Area ${selectedYear || 2025}</strong></div>`,
+      { sticky: true }
+    );
+  },
+  urbanServiceAreaPrev: (feature, layer, { selectedYear } = {}) => {
+    layer.bindTooltip(
+      `<div class="font-sans text-sm"><strong>Urban Service Area ${selectedYear || ''} (Previous)</strong></div>`,
       { sticky: true }
     );
   },
@@ -354,7 +384,11 @@ const layerTooltips = {
   pdrProperty: (feature, layer) => {
     const p = feature.properties;
     layer.bindTooltip(
-      `<div class="font-sans text-sm"><strong>PDR Property</strong></div>`,
+      `<div class="font-sans text-sm">
+        <strong>PDR Property</strong><br/>
+        <span class="text-gray-600">${p.ADDRESS || ''}</span><br/>
+        <span class="text-gray-500">${p.Status || ''} ${p.APPNUM || ''} ${p.FUNDING || ''}</span>
+      </div>`,
       { sticky: true }
     );
   },
@@ -439,7 +473,12 @@ function PrecinctMap({ layers }) {
 
   // Generate unique keys for each layer to ensure proper rendering
   const layerKeys = useMemo(() => {
-    return geoLayers.map(l => `${l.id}-${l.data.features.length}`);
+    return geoLayers.map(l => {
+      // Include selectedYear for layers with year selector (like Urban Service Area)
+      const yearKey = l.selectedYear ? `-${l.selectedYear}` : '';
+      const prevKey = l.isPreviousYear ? '-prev' : '';
+      return `${l.id}-${l.data.features.length}${yearKey}${prevKey}`;
+    });
   }, [geoLayers]);
 
   return (
@@ -455,14 +494,19 @@ function PrecinctMap({ layers }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {geoLayers.map((layer, idx) => (
-        <GeoJSON
-          key={layerKeys[idx]}
-          data={layer.data}
-          style={layerStyles[layer.id]}
-          onEachFeature={layerTooltips[layer.id]}
-        />
-      ))}
+      {geoLayers.map((layer, idx) => {
+        const styleOpts = { selectedYear: layer.selectedYear };
+        const styleFn = layerStyles[layer.id];
+        const tooltipFn = layerTooltips[layer.id];
+        return (
+          <GeoJSON
+            key={layerKeys[idx]}
+            data={layer.data}
+            style={styleFn ? (feature) => styleFn(feature, null, styleOpts) : undefined}
+            onEachFeature={tooltipFn ? (feature, lyr) => tooltipFn(feature, lyr, styleOpts) : undefined}
+          />
+        );
+      })}
 
       {/* Render point layers (STRs) as circle markers */}
       {pointLayers.map(layer =>
