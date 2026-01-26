@@ -70,6 +70,13 @@ const layerStyles = {
       fillOpacity: 0.4
     };
   },
+  neighborhoodAssociations: () => ({
+    fillColor: '#ec4899',
+    weight: 2,
+    opacity: 1,
+    color: '#be185d',
+    fillOpacity: 0.3
+  }),
   censusRace: (feature) => {
     const p = feature.properties;
     const total = p.P0010001 || 0;
@@ -257,6 +264,23 @@ const layerTooltips = {
       `<div class="font-sans text-sm">
         <strong>School District ${district}</strong>
         ${rep ? `<br/><span class="text-gray-600">${rep}</span>` : ''}
+      </div>`,
+      { sticky: true }
+    );
+  },
+  neighborhoodAssociations: (feature, layer) => {
+    const p = feature.properties;
+    const name = p.Assoc_Name || 'Unknown';
+    const active = p.Active === 'YES' ? 'Active' : 'Inactive';
+    const council = p.Council || '';
+    const website = p.Website || '';
+    const email = p.Primary_Contact_Email || '';
+    layer.bindTooltip(
+      `<div class="font-sans text-sm">
+        <strong>${name}</strong><br/>
+        <span class="text-gray-600">${active}${council ? ` • Council ${council}` : ''}</span>
+        ${website ? `<br/><span class="text-gray-500">${website}</span>` : ''}
+        ${email ? `<br/><span class="text-gray-500">${email}</span>` : ''}
       </div>`,
       { sticky: true }
     );

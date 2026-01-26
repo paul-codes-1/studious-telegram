@@ -41,6 +41,7 @@ import railroadData from './data/railroad.json';
 import schoolDistrictsData from './data/school-districts.json';
 import shortTermRentalsData from './data/short-term-rentals.json';
 import zoningData from './data/zoning.json';
+import neighborhoodAssociationsData from './data/neighborhood-associations.json';
 
 // Preset layer configurations
 const presets = {
@@ -52,7 +53,7 @@ const presets = {
       parks: false, greenway: false, bicycleNetwork: false, railroad: false,
       basin: false, waterbodies: false, waterways: false, waterNetwork: false,
       stream: false, pdrProperty: false, shortTermRentals: false, treeCanopy: false,
-      zoning: true
+      zoning: true, neighborhoodAssociations: false
     }
   },
   environment: {
@@ -63,7 +64,7 @@ const presets = {
       parks: true, greenway: true, bicycleNetwork: true, railroad: false,
       basin: true, waterbodies: true, waterways: true, waterNetwork: true,
       stream: true, pdrProperty: true, shortTermRentals: false, treeCanopy: true,
-      zoning: false
+      zoning: false, neighborhoodAssociations: false
     }
   }
 };
@@ -241,6 +242,16 @@ function App() {
         { color: '#22c55e', label: '3' },
         { color: '#3b82f6', label: '4' },
         { color: '#8b5cf6', label: '5' }
+      ]
+    },
+    {
+      id: 'neighborhoodAssociations',
+      name: 'Neighborhood Associations',
+      data: neighborhoodAssociationsData,
+      description: 'Registered neighborhood associations',
+      category: 'Boundaries',
+      legend: [
+        { color: '#ec4899', label: 'Association' }
       ]
     },
     // Demographics
