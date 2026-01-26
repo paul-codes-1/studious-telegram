@@ -18,30 +18,44 @@ import parksData from './data/parks.json';
 import railroadData from './data/railroad.json';
 import schoolDistrictsData from './data/school-districts.json';
 import shortTermRentalsData from './data/short-term-rentals.json';
+import zoningData from './data/zoning.json';
+
+// Preset layer configurations
+const presets = {
+  zoning: {
+    label: 'Zoning',
+    layers: {
+      redlining: false, urbanServiceArea: false, councilDistricts: false,
+      schoolDistricts: false, censusRace: false, censusOccupancy: false,
+      parks: false, greenway: false, bicycleNetwork: false, railroad: false,
+      basin: false, waterbodies: false, waterways: false, waterNetwork: false,
+      stream: false, pdrProperty: false, shortTermRentals: false, treeCanopy: false,
+      zoning: true
+    }
+  },
+  environment: {
+    label: 'Environment & Recreation',
+    layers: {
+      redlining: false, urbanServiceArea: false, councilDistricts: false,
+      schoolDistricts: false, censusRace: false, censusOccupancy: false,
+      parks: true, greenway: true, bicycleNetwork: true, railroad: false,
+      basin: true, waterbodies: true, waterways: true, waterNetwork: true,
+      stream: true, pdrProperty: true, shortTermRentals: false, treeCanopy: true,
+      zoning: false
+    }
+  }
+};
 
 function App() {
-  const [layers, setLayers] = useState({
-    redlining: false,
-    urbanServiceArea: false,
-    councilDistricts: false,
-    schoolDistricts: false,
-    censusRace: false,
-    censusOccupancy: false,
-    parks: true,
-    greenway: true,
-    bicycleNetwork: true,
-    railroad: false,
-    basin: true,
-    waterbodies: true,
-    waterways: true,
-    waterNetwork: true,
-    stream: true,
-    pdrProperty: true,
-    shortTermRentals: false,
-    treeCanopy: true
-  });
+  const [layers, setLayers] = useState(presets.zoning.layers);
+  const [activePreset, setActivePreset] = useState('zoning');
   const [panelOpen, setPanelOpen] = useState(true);
   const [treeCanopyData, setTreeCanopyData] = useState(null);
+
+  const applyPreset = (presetKey) => {
+    setLayers(presets[presetKey].layers);
+    setActivePreset(presetKey);
+  };
 
   // Load tree canopy data dynamically when enabled
   useEffect(() => {
@@ -261,6 +275,24 @@ function App() {
       ]
     },
     {
+      id: 'zoning',
+      name: 'Zoning',
+      data: zoningData,
+      description: 'Land use zoning districts',
+      category: 'Land Use',
+      legend: [
+        { color: '#22c55e', label: 'Agricultural' },
+        { color: '#eab308', label: 'Residential' },
+        { color: '#3b82f6', label: 'Business' },
+        { color: '#8b5cf6', label: 'Industrial' },
+        { color: '#ec4899', label: 'Mixed Use' },
+        { color: '#2dd4bf', label: 'Professional' },
+        { color: '#f97316', label: 'Planned Dev' },
+        { color: '#06b6d4', label: 'Expansion' },
+        { color: '#64748b', label: 'Conservation' }
+      ]
+    },
+    {
       id: 'shortTermRentals',
       name: 'Short-Term Rentals',
       data: shortTermRentalsData,
@@ -293,6 +325,22 @@ function App() {
 
       {/* Desktop: Small overlay panel on right */}
       <div className="hidden md:block absolute top-4 right-4 z-[1000] max-h-[calc(100vh-2rem)] overflow-y-auto">
+        {/* Preset toggle */}
+        <div className="bg-white rounded-lg shadow-lg p-2 mb-2 flex gap-1">
+          {Object.entries(presets).map(([key, preset]) => (
+            <button
+              key={key}
+              onClick={() => applyPreset(key)}
+              className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                activePreset === key
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
         <LayerPanel
           layers={layerConfigs}
           activeLayerIds={layers}
@@ -342,6 +390,22 @@ function App() {
             </button>
           </div>
           <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(100% - 65px)' }}>
+            {/* Preset toggle */}
+            <div className="flex gap-2 mb-4">
+              {Object.entries(presets).map(([key, preset]) => (
+                <button
+                  key={key}
+                  onClick={() => applyPreset(key)}
+                  className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    activePreset === key
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
             <LayerPanel
               layers={layerConfigs}
               activeLayerIds={layers}

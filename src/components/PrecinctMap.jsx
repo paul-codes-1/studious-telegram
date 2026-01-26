@@ -148,6 +148,33 @@ const layerStyles = {
     color: '#65a30d',
     fillOpacity: 0.5
   }),
+  zoning: (feature) => {
+    const zone = feature.properties.ZONING || '';
+    const zoningColors = {
+      'A-B': '#15803d', 'A-N': '#16a34a', 'A-R': '#22c55e', 'A-U': '#4ade80',
+      'R-1A': '#fef08a', 'R-1B': '#fde047', 'R-1C': '#facc15', 'R-1D': '#eab308',
+      'R-1E': '#ca8a04', 'R-1T': '#a16207', 'R-2': '#f59e0b', 'R-3': '#d97706',
+      'R-4': '#b45309', 'R-5': '#92400e',
+      'B-1': '#bfdbfe', 'B-2': '#93c5fd', 'B-2A': '#60a5fa', 'B-2B': '#3b82f6',
+      'B-3': '#2563eb', 'B-4': '#1d4ed8', 'B-5P': '#1e40af', 'B-6P': '#1e3a8a',
+      'I-1': '#a78bfa', 'I-2': '#8b5cf6',
+      'M-1P': '#c084fc',
+      'MU-1': '#f9a8d4', 'MU-2': '#f472b6', 'MU-3': '#ec4899',
+      'P-1': '#5eead4', 'P-2': '#2dd4bf',
+      'PUD-1': '#fdba74', 'PUD-2': '#fb923c', 'PUD-3': '#f97316',
+      'EAR-1': '#67e8f9', 'EAR-2': '#22d3ee', 'EAR-3': '#06b6d4',
+      'ED': '#0891b2', 'EX-1': '#0e7490',
+      'CC': '#94a3b8', 'CD': '#64748b'
+    };
+    const fillColor = zoningColors[zone] || '#6b7280';
+    return {
+      fillColor,
+      weight: 1,
+      opacity: 1,
+      color: '#333',
+      fillOpacity: 0.6
+    };
+  },
   shortTermRentals: () => ({
     // Point layer - handled separately
   }),
@@ -330,6 +357,48 @@ const layerTooltips = {
       `<div class="font-sans text-sm"><strong>PDR Property</strong></div>`,
       { sticky: true }
     );
+  },
+  zoning: (feature, layer) => {
+    const p = feature.properties;
+    const zone = p.ZONING || 'Unknown';
+    const zoneDescriptions = {
+      'A-B': 'Agricultural Buffer', 'A-N': 'Agricultural Natural Area',
+      'A-R': 'Agricultural Rural', 'A-U': 'Agricultural Urban',
+      'R-1A': 'Residential Low Density', 'R-1B': 'Residential Low Density',
+      'R-1C': 'Residential Low Density', 'R-1D': 'Residential Low Density',
+      'R-1E': 'Residential Low Density', 'R-1T': 'Residential Townhouse',
+      'R-2': 'Residential Medium Density', 'R-3': 'Residential High Density',
+      'R-4': 'Residential High Rise', 'R-5': 'Residential High Rise',
+      'B-1': 'Neighborhood Business', 'B-2': 'Community Business',
+      'B-2A': 'Community Business', 'B-2B': 'Community Business',
+      'B-3': 'Highway Business', 'B-4': 'Wholesale Business',
+      'B-5P': 'Business Park', 'B-6P': 'Business Park',
+      'I-1': 'Light Industrial', 'I-2': 'Heavy Industrial',
+      'M-1P': 'Manufacturing Park',
+      'MU-1': 'Mixed Use Low', 'MU-2': 'Mixed Use Medium', 'MU-3': 'Mixed Use High',
+      'P-1': 'Professional Office', 'P-2': 'Professional Office',
+      'PUD-1': 'Planned Unit Dev', 'PUD-2': 'Planned Unit Dev', 'PUD-3': 'Planned Unit Dev',
+      'EAR-1': 'Expansion Area', 'EAR-2': 'Expansion Area', 'EAR-3': 'Expansion Area',
+      'ED': 'Economic Development', 'EX-1': 'Extractive Industry',
+      'CC': 'Conservation Corridor', 'CD': 'Conservation Development'
+    };
+    const desc = zoneDescriptions[zone] || '';
+    const link = p.LINK || '';
+    layer.bindTooltip(
+      `<div class="font-sans text-sm">
+        <strong>${zone}</strong>${desc ? ` - ${desc}` : ''}
+      </div>`,
+      { sticky: true }
+    );
+    if (link) {
+      layer.bindPopup(
+        `<div class="font-sans">
+          <div class="font-bold mb-2">${zone}${desc ? ` - ${desc}` : ''}</div>
+          <iframe src="${link}" style="width:400px;height:300px;border:1px solid #ccc;border-radius:4px;opacity:0;transition:opacity 0.3s;" onload="this.style.opacity=1"></iframe>
+        </div>`,
+        { maxWidth: 450 }
+      );
+    }
   },
   shortTermRentals: (feature, layer) => {
     const p = feature.properties;
