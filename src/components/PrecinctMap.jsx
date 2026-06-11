@@ -27,6 +27,12 @@ function MapUpdater({ data }) {
 
 function PrecinctMap({ data, selectedPrecinct, onPrecinctSelect, getColor, getTooltipHtml, renderKey }) {
   const geoJsonRef = useRef(null);
+  // Tooltips are bound once per layer mount; binding a static string bakes in
+  // whatever data had loaded at mount time (e.g. "No votes" before the async
+  // swing JSON arrives). Bind a content *function* that reads the latest
+  // getTooltipHtml through a ref so every hover renders fresh state.
+  const tooltipFnRef = useRef(getTooltipHtml);
+  tooltipFnRef.current = getTooltipHtml;
 
   // Lexington, KY center coordinates
   const center = [38.0406, -84.5037];
@@ -46,7 +52,7 @@ function PrecinctMap({ data, selectedPrecinct, onPrecinctSelect, getColor, getTo
 
   // Event handlers for each feature
   const onEachFeature = (feature, layer) => {
-    layer.bindTooltip(getTooltipHtml(feature), {
+    layer.bindTooltip(() => tooltipFnRef.current(feature), {
       sticky: true,
       className: 'bg-white shadow-lg rounded px-2 py-1'
     });
