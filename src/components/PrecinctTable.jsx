@@ -1,40 +1,73 @@
 import { useState, useMemo } from 'react';
-import { getMarginColor, formatPct, formatNumber } from '../utils/colorScale';
+import {
+  contestMarginScale,
+  getSwingColor,
+  shortName,
+  formatPct,
+  formatNumber,
+} from '../utils/colorScale';
 
-function PrecinctTable({ data, selectedPrecinct, onPrecinctSelect }) {
+function PrecinctTable({ data, selectedPrecinct, onPrecinctSelect, electionId, stats, swingData }) {
   const [sortConfig, setSortConfig] = useState({ key: 'code', direction: 'asc' });
+  const isSwing = electionId === 'swing';
 
-  // Helper to compute council undervote percentage
-  const getCouncilUndervote = (p) => {
-    if (!p.councilResults || p.councilResults.length === 0 || !p.ballotsCast) return null;
-    const totalVotes = p.councilResults.reduce((sum, c) => sum + c.votes, 0);
-    return (1 - totalVotes / p.ballotsCast) * 100;
-  };
-
-  // Sort data based on current sort configuration
-  const sortedData = useMemo(() => {
-    const sorted = [...data.features].sort((a, b) => {
-      let aVal, bVal;
-
-      if (sortConfig.key === 'councilUndervote') {
-        aVal = getCouncilUndervote(a.properties) ?? -1;
-        bVal = getCouncilUndervote(b.properties) ?? -1;
-      } else {
-        aVal = a.properties[sortConfig.key];
-        bVal = b.properties[sortConfig.key];
+  // Build one row per precinct with the computed fields for the current view
+  const rows = useMemo(() => {
+    return data.features.map((feature) => {
+      const p = feature.properties;
+      if (isSwing) {
+        const s = swingData?.[p.code];
+        return {
+          feature,
+          code: p.code,
+          name: p.name,
+          councilDistrict: p.councilDistrict,
+          population: p.population,
+          g22Pct: s?.g22Pct ?? null,
+          g26Pct: s?.g26Pct ?? null,
+          swing: s?.swing ?? null,
+          total: s?.g26Total ?? null,
+        };
       }
+      const st = stats?.byCode[p.code];
+      const total = st?.total || 0;
+      const v1 = (stats?.cand1 && st && total > 0) ? (st.entries.find(([n]) => n === stats.cand1)?.[1] || 0) : null;
+      const v2 = (stats?.cand2 && st && total > 0) ? (st.entries.find(([n]) => n === stats.cand2)?.[1] || 0) : null;
+      return {
+        feature,
+        code: p.code,
+        name: p.name,
+        councilDistrict: p.councilDistrict,
+        population: p.population,
+        leaderName: st?.leaderName ?? null,
+        cand1Pct: v1 != null ? (v1 / total) * 100 : null,
+        cand2Pct: v2 != null ? (v2 / total) * 100 : null,
+        margin: st?.margin ?? null,
+        total: st ? st.total : null,
+      };
+    });
+  }, [data.features, isSwing, stats, swingData]);
 
-      if (typeof aVal === 'string') {
+  // Sort rows based on current sort configuration
+  const sortedRows = useMemo(() => {
+    return [...rows].sort((a, b) => {
+      let aVal = a[sortConfig.key];
+      let bVal = b[sortConfig.key];
+
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
         const compare = aVal.localeCompare(bVal);
         return sortConfig.direction === 'asc' ? compare : -compare;
       }
 
+      // Push null/no-data rows to the bottom regardless of direction
+      if (aVal == null && bVal == null) return 0;
+      if (aVal == null) return 1;
+      if (bVal == null) return -1;
+
       const compare = aVal - bVal;
       return sortConfig.direction === 'asc' ? compare : -compare;
     });
-
-    return sorted;
-  }, [data.features, sortConfig]);
+  }, [rows, sortConfig]);
 
   const handleSort = (key) => {
     setSortConfig(prev => ({
@@ -60,6 +93,12 @@ function PrecinctTable({ data, selectedPrecinct, onPrecinctSelect }) {
     );
   };
 
+  const pctCell = (value) => (
+    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+      {value != null ? formatPct(value) : '—'}
+    </td>
+  );
+
   return (
     <div className="bg-white">
       <table style={{ minWidth: '900px', width: '100%' }} className="divide-y divide-gray-200">
@@ -67,66 +106,79 @@ function PrecinctTable({ data, selectedPrecinct, onPrecinctSelect }) {
           <tr>
             <SortHeader label="Code" sortKey="code" />
             <SortHeader label="Precinct" sortKey="name" />
-            <SortHeader label="Trump %" sortKey="trumpPct" />
-            <SortHeader label="Harris %" sortKey="harrisPct" />
-            <SortHeader label="Margin" sortKey="margin" />
-            <SortHeader label="Ballots" sortKey="ballotsCast" />
+            {isSwing ? (
+              <>
+                <SortHeader label="'22 Gorton %" sortKey="g22Pct" />
+                <SortHeader label="'26 Gorton %" sortKey="g26Pct" />
+                <SortHeader label="Swing" sortKey="swing" />
+                <SortHeader label="'26 Mayor Votes" sortKey="total" />
+              </>
+            ) : (
+              <>
+                <SortHeader label={stats?.cand1 ? `${shortName(stats.cand1)} %` : 'Leader %'} sortKey="cand1Pct" />
+                <SortHeader label={stats?.cand2 ? `${shortName(stats.cand2)} %` : 'Runner-up %'} sortKey="cand2Pct" />
+                <SortHeader label="Margin" sortKey="margin" />
+                <SortHeader label="Votes" sortKey="total" />
+              </>
+            )}
             <SortHeader label="Population" sortKey="population" />
-            <SortHeader label="Turnout %" sortKey="turnoutPct" />
             <SortHeader label="Council" sortKey="councilDistrict" />
-            <SortHeader label="Council Undervote" sortKey="councilUndervote" />
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {sortedData.map((feature) => {
-            const p = feature.properties;
-            const isSelected = selectedPrecinct?.properties.code === p.code;
+          {sortedRows.map((row) => {
+            const isSelected = selectedPrecinct?.properties.code === row.code;
+            const divergeValue = isSwing ? row.swing : row.margin;
+            const divergeColor = isSwing ? getSwingColor(row.swing) : (row.margin != null ? contestMarginScale(row.margin) : '#d1d5db');
 
             return (
               <tr
-                key={p.code}
-                onClick={() => onPrecinctSelect(feature)}
+                key={row.code}
+                onClick={() => onPrecinctSelect(row.feature)}
                 className={`cursor-pointer hover:bg-gray-50 ${
                   isSelected ? 'bg-blue-50 ring-2 ring-inset ring-blue-500' : ''
                 }`}
               >
                 <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {p.code}
+                  {row.code}
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                  {p.name}
+                  {row.name}
                 </td>
-                <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                  {formatPct(p.trumpPct)}
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                  {formatPct(p.harrisPct)}
-                </td>
+                {isSwing ? (
+                  <>
+                    {pctCell(row.g22Pct)}
+                    {pctCell(row.g26Pct)}
+                  </>
+                ) : (
+                  <>
+                    {pctCell(row.cand1Pct)}
+                    {pctCell(row.cand2Pct)}
+                  </>
+                )}
                 <td className="px-3 py-2 whitespace-nowrap text-sm">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: getMarginColor(p.margin) }}
-                    />
-                    <span className={p.margin < 0 ? 'text-blue-600' : 'text-red-600'}>
-                      {p.margin > 0 ? '+' : ''}{p.margin}%
-                    </span>
-                  </div>
+                  {divergeValue != null ? (
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full border border-gray-200"
+                        style={{ backgroundColor: divergeColor }}
+                      />
+                      <span className={divergeValue < 0 ? 'text-red-700' : 'text-blue-700'}>
+                        {divergeValue > 0 ? '+' : ''}{divergeValue.toFixed(1)}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">—</span>
+                  )}
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                  {formatNumber(p.ballotsCast)}
+                  {row.total != null ? formatNumber(row.total) : '—'}
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                  {formatNumber(p.population)}
+                  {formatNumber(row.population)}
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                  {formatPct(p.turnoutPct)}
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                  {p.councilDistrict}
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                  {getCouncilUndervote(p) !== null ? `${getCouncilUndervote(p).toFixed(1)}%` : '—'}
+                  {row.councilDistrict}
                 </td>
               </tr>
             );
@@ -134,7 +186,7 @@ function PrecinctTable({ data, selectedPrecinct, onPrecinctSelect }) {
         </tbody>
       </table>
 
-      {sortedData.length === 0 && (
+      {sortedRows.length === 0 && (
         <div className="p-8 text-center text-gray-500">
           No precincts match the current filters
         </div>

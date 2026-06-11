@@ -1,6 +1,11 @@
+import { shortName } from '../utils/colorScale';
+
 const COUNCIL_DISTRICTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
-function FilterPanel({ filters, onFiltersChange }) {
+function FilterPanel({ filters, onFiltersChange, electionId, stats, maxVotes }) {
+  const isSwing = electionId === 'swing';
+  const sliderMax = Math.max(100, Math.ceil((maxVotes || 0) / 100) * 100);
+
   const handleSearchChange = (e) => {
     onFiltersChange({ ...filters, search: e.target.value });
   };
@@ -12,8 +17,8 @@ function FilterPanel({ filters, onFiltersChange }) {
     });
   };
 
-  const handleTurnoutChange = (e) => {
-    onFiltersChange({ ...filters, minTurnout: parseInt(e.target.value) });
+  const handleMinVotesChange = (e) => {
+    onFiltersChange({ ...filters, minVotes: parseInt(e.target.value) });
   };
 
   const handleDistrictToggle = (district) => {
@@ -33,10 +38,14 @@ function FilterPanel({ filters, onFiltersChange }) {
       search: '',
       marginMin: -100,
       marginMax: 100,
-      minTurnout: 0,
+      minVotes: 0,
       councilDistricts: []
     });
   };
+
+  // Labels for the diverging axis: candidate names for contests, lost/gained for swing
+  const negLabel = isSwing ? 'Lost 100' : stats?.cand2 ? `${shortName(stats.cand2)} +100` : '−100';
+  const posLabel = isSwing ? 'Gained 100' : stats?.cand1 ? `${shortName(stats.cand1)} +100` : '+100';
 
   return (
     <div className="p-4">
@@ -54,10 +63,10 @@ function FilterPanel({ filters, onFiltersChange }) {
         />
       </div>
 
-      {/* Margin filter */}
+      {/* Margin / swing filter */}
       <div className="mb-4">
         <label className="block text-sm text-gray-600 mb-1">
-          Margin Range: {filters.marginMin > 0 ? '+' : ''}{filters.marginMin} to {filters.marginMax > 0 ? '+' : ''}{filters.marginMax}
+          {isSwing ? 'Swing' : 'Margin'} Range: {filters.marginMin > 0 ? '+' : ''}{filters.marginMin} to {filters.marginMax > 0 ? '+' : ''}{filters.marginMax}
         </label>
         <div className="flex gap-2">
           <input
@@ -78,9 +87,9 @@ function FilterPanel({ filters, onFiltersChange }) {
           />
         </div>
         <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>D+100</span>
+          <span>{negLabel}</span>
           <span>Even</span>
-          <span>R+100</span>
+          <span>{posLabel}</span>
         </div>
       </div>
 
@@ -90,36 +99,37 @@ function FilterPanel({ filters, onFiltersChange }) {
         <div className="flex flex-wrap gap-1">
           <button
             onClick={() => onFiltersChange({ ...filters, marginMin: -100, marginMax: -10 })}
-            className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+            className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
           >
-            Safe D
+            {isSwing ? 'Lost 10+' : stats?.cand2 ? `${shortName(stats.cand2)} +10` : 'Strong −'}
           </button>
           <button
             onClick={() => onFiltersChange({ ...filters, marginMin: -10, marginMax: 10 })}
             className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
           >
-            Swing
+            Close
           </button>
           <button
             onClick={() => onFiltersChange({ ...filters, marginMin: 10, marginMax: 100 })}
-            className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+            className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
           >
-            Safe R
+            {isSwing ? 'Gained 10+' : stats?.cand1 ? `${shortName(stats.cand1)} +10` : 'Strong +'}
           </button>
         </div>
       </div>
 
-      {/* Turnout filter */}
+      {/* Min votes filter */}
       <div className="mb-4">
         <label className="block text-sm text-gray-600 mb-1">
-          Min Turnout: {filters.minTurnout}%
+          Min Votes in Contest: {filters.minVotes}
         </label>
         <input
           type="range"
           min="0"
-          max="100"
-          value={filters.minTurnout}
-          onChange={handleTurnoutChange}
+          max={sliderMax}
+          step="10"
+          value={filters.minVotes}
+          onChange={handleMinVotesChange}
           className="w-full"
         />
       </div>

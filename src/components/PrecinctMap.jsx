@@ -1,9 +1,8 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
-import { getMarginColor, formatPct } from '../utils/colorScale';
 
 // Component to handle map updates when data changes
-function MapUpdater({ data, selectedPrecinct }) {
+function MapUpdater({ data }) {
   const map = useMap();
 
   useEffect(() => {
@@ -26,7 +25,7 @@ function MapUpdater({ data, selectedPrecinct }) {
   return null;
 }
 
-function PrecinctMap({ data, selectedPrecinct, onPrecinctSelect }) {
+function PrecinctMap({ data, selectedPrecinct, onPrecinctSelect, getColor, getTooltipHtml, renderKey }) {
   const geoJsonRef = useRef(null);
 
   // Lexington, KY center coordinates
@@ -35,10 +34,9 @@ function PrecinctMap({ data, selectedPrecinct, onPrecinctSelect }) {
   // Style function for each precinct
   const getStyle = (feature) => {
     const isSelected = selectedPrecinct?.properties.code === feature.properties.code;
-    const margin = feature.properties.margin;
 
     return {
-      fillColor: getMarginColor(margin),
+      fillColor: getColor(feature),
       weight: isSelected ? 3 : 1,
       opacity: 1,
       color: isSelected ? '#000' : '#666',
@@ -48,18 +46,7 @@ function PrecinctMap({ data, selectedPrecinct, onPrecinctSelect }) {
 
   // Event handlers for each feature
   const onEachFeature = (feature, layer) => {
-    const p = feature.properties;
-
-    // Tooltip content
-    const tooltipContent = `
-      <div class="font-sans">
-        <strong>${p.name}</strong> (${p.code})<br/>
-        Margin: ${p.margin > 0 ? '+' : ''}${p.margin}%<br/>
-        Turnout: ${p.turnoutPct}%
-      </div>
-    `;
-
-    layer.bindTooltip(tooltipContent, {
+    layer.bindTooltip(getTooltipHtml(feature), {
       sticky: true,
       className: 'bg-white shadow-lg rounded px-2 py-1'
     });
@@ -90,11 +77,6 @@ function PrecinctMap({ data, selectedPrecinct, onPrecinctSelect }) {
     });
   };
 
-  // Generate a key that changes when selection changes to force re-render
-  const geoJsonKey = useMemo(() => {
-    return `${data.features.length}-${selectedPrecinct?.properties.code || 'none'}`;
-  }, [data.features.length, selectedPrecinct]);
-
   return (
     <MapContainer
       center={center}
@@ -107,13 +89,13 @@ function PrecinctMap({ data, selectedPrecinct, onPrecinctSelect }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <GeoJSON
-        key={geoJsonKey}
+        key={renderKey}
         ref={geoJsonRef}
         data={data}
         style={getStyle}
         onEachFeature={onEachFeature}
       />
-      <MapUpdater data={data} selectedPrecinct={selectedPrecinct} />
+      <MapUpdater data={data} />
     </MapContainer>
   );
 }

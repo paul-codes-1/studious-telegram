@@ -1,25 +1,174 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import PrecinctMap from './components/PrecinctMap';
 import PrecinctTable from './components/PrecinctTable';
 import PrecinctDetail from './components/PrecinctDetail';
 import Legend from './components/Legend';
 import FilterPanel from './components/FilterPanel';
+import ContestPicker from './components/ContestPicker';
 import precinctData from './data/precincts.json';
+import { computeContestStats } from './utils/contestStats';
+import {
+  contestMarginScale,
+  getCandidateColor,
+  getShareColor,
+  makeTurnoutScale,
+  getSwingColor,
+  shortName,
+  formatPct,
+  formatNumber,
+  NO_DATA_COLOR,
+} from './utils/colorScale';
+
+const ELECTIONS = [
+  { id: 'g2022', label: '2022 General' },
+  { id: 'g2024', label: '2024 General' },
+  { id: 'p2026', label: '2026 Primary' },
+  { id: 'swing', label: 'Special: Gorton swing 22→26' },
+];
+
+const MODES = [
+  { id: 'margin', label: 'Margin' },
+  { id: 'share', label: 'Leader share' },
+  { id: 'turnout', label: 'Turnout' },
+];
+
+const DEFAULT_FILTERS = {
+  search: '',
+  marginMin: -100,
+  marginMax: 100,
+  minVotes: 0,
+  councilDistricts: [] // empty = all districts
+};
 
 function App() {
+  const [electionId, setElectionId] = useState('p2026');
+  const [contestKey, setContestKey] = useState(null);
+  const [mode, setMode] = useState('margin');
   const [selectedPrecinct, setSelectedPrecinct] = useState(null);
   const [view, setView] = useState('map'); // 'map' or 'table'
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
-  const [filters, setFilters] = useState({
-    search: '',
-    marginMin: -100,
-    marginMax: 100,
-    minTurnout: 0,
-    councilDistricts: [] // empty = all districts
-  });
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [electionCache, setElectionCache] = useState({}); // id -> fetched payload
+  const [loadError, setLoadError] = useState(null);
+
+  // Remember the last contest viewed per election
+  const lastContestRef = useRef({});
+
+  const election = electionCache[electionId];
+  const isSwing = electionId === 'swing';
+  const contests = election?.contests || [];
+  const contest = useMemo(
+    () => contests.find(c => c.key === contestKey) || null,
+    [contests, contestKey]
+  );
+
+  // Fetch election data on demand (kept out of the JS bundle)
+  useEffect(() => {
+    if (electionCache[electionId]) return;
+    let cancelled = false;
+    setLoadError(null);
+    fetch(`/data/elections/${electionId}.json`)
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        if (!cancelled) {
+          setElectionCache(prev => ({ ...prev, [electionId]: data }));
+        }
+      })
+      .catch(err => {
+        if (!cancelled) setLoadError(`Could not load election data (${err.message})`);
+      });
+    return () => { cancelled = true; };
+  }, [electionId, electionCache]);
+
+  // Pick a default contest when an election loads: the biggest race on the ballot
+  useEffect(() => {
+    if (isSwing || !election) return;
+    if (contestKey && election.contests.some(c => c.key === contestKey)) return;
+    const remembered = lastContestRef.current[electionId];
+    if (remembered && election.contests.some(c => c.key === remembered)) {
+      setContestKey(remembered);
+      return;
+    }
+    const marquee = [/^PRESIDENT/, /^UNITED STATES SENATOR/, /^MAYOR$/]
+      .map(re => election.contests.find(c => re.test(c.title)))
+      .find(Boolean);
+    const biggest = marquee || [...election.contests].sort((a, b) => {
+      const sum = c => Object.values(c.totals).reduce((s, v) => s + v, 0);
+      return sum(b) - sum(a);
+    })[0];
+    setContestKey(biggest?.key || null);
+  }, [election, electionId, contestKey, isSwing]);
+
+  const handleElectionChange = (id) => {
+    if (contestKey) lastContestRef.current[electionId] = contestKey;
+    setElectionId(id);
+    setContestKey(null);
+  };
+
+  const handleContestChange = (key) => {
+    setContestKey(key);
+    lastContestRef.current[electionId] = key;
+  };
+
+  // Per-precinct stats for the selected contest
+  const stats = useMemo(() => computeContestStats(contest), [contest]);
+  const swingData = isSwing ? election?.precincts : null;
+  const turnoutScale = useMemo(
+    () => makeTurnoutScale(stats?.maxVotes || 1),
+    [stats]
+  );
+
+  // Choropleth fill for the current election/contest/mode
+  const getColor = (feature) => {
+    const code = feature.properties.code;
+    if (isSwing) {
+      return getSwingColor(swingData?.[code]?.swing ?? null);
+    }
+    const st = stats?.byCode[code];
+    if (!st || st.total === 0) return NO_DATA_COLOR;
+    if (mode === 'margin') return contestMarginScale(st.margin);
+    if (mode === 'share') return getShareColor(getCandidateColor(st.leaderIdx), st.leaderShare);
+    return turnoutScale(st.total);
+  };
+
+  // Hover tooltip for the current election/contest/mode
+  const getTooltipHtml = (feature) => {
+    const p = feature.properties;
+    const head = `<strong>${p.name}</strong> (${p.code})`;
+    if (isSwing) {
+      const s = swingData?.[p.code];
+      if (!s || s.swing == null) return `<div class="font-sans">${head}<br/>No mayor votes in both elections</div>`;
+      return `
+        <div class="font-sans">
+          ${head}<br/>
+          Gorton '22 general: ${formatPct(s.g22Pct)} (${formatNumber(s.g22Gorton)}/${formatNumber(s.g22Total)})<br/>
+          Gorton '26 primary: ${formatPct(s.g26Pct)} (${formatNumber(s.g26Gorton)}/${formatNumber(s.g26Total)})<br/>
+          Swing: ${s.swing > 0 ? '+' : ''}${s.swing.toFixed(1)} pts
+        </div>
+      `;
+    }
+    const st = stats?.byCode[p.code];
+    if (!st || st.total === 0) return `<div class="font-sans">${head}<br/>No votes recorded</div>`;
+    const lines = st.entries.slice(0, 2).map(([name, votes]) =>
+      `${shortName(name)}: ${formatNumber(votes)} (${formatPct((votes / st.total) * 100)})`
+    );
+    return `
+      <div class="font-sans">
+        ${head}<br/>
+        ${lines.join('<br/>')}<br/>
+        ${formatNumber(st.total)} votes cast
+      </div>
+    `;
+  };
 
   // Filter precincts based on current filters
   const filteredData = useMemo(() => {
+    const marginActive = filters.marginMin > -100 || filters.marginMax < 100;
+    const votesActive = filters.minVotes > 0;
+
     return {
       ...precinctData,
       features: precinctData.features.filter(feature => {
@@ -34,26 +183,32 @@ function App() {
           }
         }
 
-        // Margin filter
-        if (p.margin < filters.marginMin || p.margin > filters.marginMax) {
-          return false;
-        }
-
-        // Turnout filter
-        if (p.turnoutPct < filters.minTurnout) {
-          return false;
-        }
-
         // Council district filter
         if (filters.councilDistricts.length > 0 &&
             !filters.councilDistricts.includes(p.councilDistrict)) {
           return false;
         }
 
+        // Margin / swing + min-votes filters against the current view's values
+        const divergeValue = isSwing
+          ? swingData?.[p.code]?.swing ?? null
+          : stats?.byCode[p.code]?.margin ?? null;
+        const votes = isSwing
+          ? swingData?.[p.code]?.g26Total ?? 0
+          : stats?.byCode[p.code]?.total ?? 0;
+
+        if (marginActive) {
+          if (divergeValue == null) return false;
+          if (divergeValue < filters.marginMin || divergeValue > filters.marginMax) return false;
+        }
+        if (votesActive && votes < filters.minVotes) {
+          return false;
+        }
+
         return true;
       })
     };
-  }, [filters]);
+  }, [filters, isSwing, stats, swingData]);
 
   const handlePrecinctSelect = (precinct) => {
     setSelectedPrecinct(precinct);
@@ -66,6 +221,12 @@ function App() {
   const handleCloseDetail = () => {
     setSelectedPrecinct(null);
   };
+
+  // Force the GeoJSON layer to re-render when anything that affects styling changes
+  const renderKey = `${electionId}|${contestKey}|${mode}|${filteredData.features.length}|${selectedPrecinct?.properties.code || 'none'}`;
+
+  const electionLabel = ELECTIONS.find(e => e.id === electionId)?.label || '';
+  const loading = !election && !loadError;
 
   return (
     <div className="h-screen flex flex-col">
@@ -82,7 +243,7 @@ function App() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <h1 className="text-lg sm:text-xl font-bold">Lexington Precinct Data Map</h1>
+          <h1 className="text-lg sm:text-xl font-bold">Lexington Precinct Election Atlas</h1>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <span className="text-gray-300 text-xs sm:text-sm hidden sm:inline">
@@ -113,6 +274,49 @@ function App() {
         </div>
       </header>
 
+      {/* Election / contest / mode toolbar */}
+      <div className="bg-gray-100 border-b border-gray-300 px-4 py-2 flex flex-wrap items-center gap-2" style={{ zIndex: 1100, position: 'relative' }}>
+        <select
+          value={electionId}
+          onChange={(e) => handleElectionChange(e.target.value)}
+          className="px-2 py-1.5 bg-white border border-gray-300 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Election"
+        >
+          {ELECTIONS.map(e => (
+            <option key={e.id} value={e.id}>{e.label}</option>
+          ))}
+        </select>
+
+        {!isSwing && contests.length > 0 && (
+          <ContestPicker
+            contests={contests}
+            value={contestKey}
+            onChange={handleContestChange}
+          />
+        )}
+
+        {!isSwing && (
+          <div className="flex bg-gray-200 rounded-lg p-0.5">
+            {MODES.map(m => (
+              <button
+                key={m.id}
+                onClick={() => setMode(m.id)}
+                className={`px-2.5 py-1 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                  mode === m.id
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {loading && <span className="text-sm text-gray-500">Loading election data…</span>}
+        {loadError && <span className="text-sm text-red-600">{loadError}</span>}
+      </div>
+
       {/* Main content */}
       <div className="flex-1 flex relative" style={{ overflow: view === 'table' ? 'auto' : 'hidden' }}>
         {/* Left sidebar overlay */}
@@ -136,24 +340,42 @@ function App() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <FilterPanel filters={filters} onFiltersChange={setFilters} />
-            <Legend />
+            <FilterPanel
+              filters={filters}
+              onFiltersChange={setFilters}
+              electionId={electionId}
+              stats={stats}
+              maxVotes={stats?.maxVotes || 0}
+            />
+            <Legend electionId={electionId} mode={mode} stats={stats} contest={contest} />
           </div>
         )}
 
         {/* Main view area */}
         <div className={`flex-1 relative ${view === 'table' ? 'overflow-auto' : 'overflow-hidden'}`}>
           {view === 'map' ? (
-            <PrecinctMap
-              data={filteredData}
-              selectedPrecinct={selectedPrecinct}
-              onPrecinctSelect={handlePrecinctSelect}
-            />
+            <>
+              <PrecinctMap
+                data={filteredData}
+                selectedPrecinct={selectedPrecinct}
+                onPrecinctSelect={handlePrecinctSelect}
+                getColor={getColor}
+                getTooltipHtml={getTooltipHtml}
+                renderKey={renderKey}
+              />
+              {/* Floating legend over the map */}
+              <div className="absolute bottom-6 right-2 hidden sm:block" style={{ zIndex: 900 }}>
+                <Legend electionId={electionId} mode={mode} stats={stats} contest={contest} compact />
+              </div>
+            </>
           ) : (
             <PrecinctTable
               data={filteredData}
               selectedPrecinct={selectedPrecinct}
               onPrecinctSelect={handlePrecinctSelect}
+              electionId={electionId}
+              stats={stats}
+              swingData={swingData}
             />
           )}
         </div>
@@ -173,10 +395,23 @@ function App() {
             <PrecinctDetail
               precinct={selectedPrecinct}
               onClose={handleCloseDetail}
+              electionId={electionId}
+              electionLabel={electionLabel}
+              contest={contest}
+              stats={stats}
+              contests={contests}
+              swingData={swingData}
+              onContestSelect={handleContestChange}
             />
           </div>
         )}
       </div>
+
+      {/* Footer / about */}
+      <footer className="bg-gray-800 text-gray-400 px-4 py-1.5 text-xs text-center">
+        Data: Fayette County Clerk precinct reports + KY Secretary of State live results, archived in-repo · Demographics: US Census 2020 ·{' '}
+        <a href="https://lexingtonky.news" className="underline hover:text-white">The Lexington Times</a>
+      </footer>
     </div>
   );
 }
