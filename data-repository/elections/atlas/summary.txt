@@ -1,0 +1,117 @@
+== 2022 GENERAL: 286 precincts, 64 contests ==
+  [286 pcts] UNITED STATES SENATOR: Charles BOOKER 64,465, Rand PAUL 42,041, Charles Lee THOMASON (W) 32, Billy Ray WILSON (W) 10
+  [286 pcts] UNITED STATES REPRESENTATIVE in CONGRESS 6th Congressional District: Andy BARR 50,033, Geoffrey M. "Geoff" YOUNG 45,691, Maurice Randall CRAVENS II. (W) 6,750, Maxwell Keith FROEDGE (W) 48
+  [286 pcts] PROPERTY VALUATION ADMINISTRATOR: David O'NEILL 71,891
+  [286 pcts] COUNTY JUDGE/EXECUTIVE: Mary Diane McCord HANNA 57,252, Jon LARSON 45,490
+  [286 pcts] COUNTY ATTORNEY: Angela EVANS 69,802
+  [286 pcts] COUNTY CLERK: Don BLEVINS JR. 69,903, Brystin Denguessi KWIN 34,695
+  [286 pcts] SHERIFF: Kathy H. WITT 72,056, Christopher D. HOLLIDAY 32,596
+  [286 pcts] COUNTY COMMISSIONER District 1: Brian MILLER 66,529
+  [286 pcts] COUNTY COMMISSIONER District 2: Alayne WHITE 66,114
+  [286 pcts] COUNTY COMMISSIONER District 3: David LOWE (W) 503
+  [286 pcts] CORONER: Gary GINN 61,301, Larry M. OWENS 40,423
+  [286 pcts] COUNTY SURVEYOR: Gary D. ROLAND 55,985
+  [286 pcts] JUDGE of the COURT of APPEALS 5th Appellate District 1st Division: Pamela R. GOODWINE 63,119
+  [286 pcts] JUDGE of the COURT of APPEALS 5th Appellate District 2nd Division: Glenn ACREE 52,771
+  [286 pcts] CIRCUIT JUDGE "Family Court" 22nd Judicial Circuit 1st Division: Libby G. MESSER 54,756
+  [286 pcts] CIRCUIT JUDGE "Family Court" 22nd Judicial Circuit 2nd Division: Traci Boyd BRISLIN 53,424
+  [286 pcts] CIRCUIT JUDGE 22nd Judicial Circuit 3rd Division: Lucy Ferguson VanMETER 55,275
+  [286 pcts] CIRCUIT JUDGE 22nd Judicial Circuit 4th Division: Julie Muth GOODMAN 53,748
+  [286 pcts] CIRCUIT JUDGE "Family Court" 22nd Judicial Circuit 5th Division: Ross EWING 50,943
+  [286 pcts] CIRCUIT JUDGE "Family Court" 22nd Judicial Circuit 6th Division: Tiffany YAHR 36,069, Carl DEVINE 35,942
+  [286 pcts] CIRCUIT JUDGE 22nd Judicial Circuit 7th Division: Diane MINNIFIELD 46,328, Jeffrey A. TAYLOR 27,031
+  [286 pcts] CIRCUIT JUDGE 22nd Judicial Circuit 8th Division: Thomas L. TRAVIS 49,749
+  [286 pcts] CIRCUIT JUDGE 22nd Judicial Circuit 9th Division: Kimberly N. BUNNELL 52,937
+  [286 pcts] DISTRICT JUDGE 22nd Judicial District 1st Division: Denotra GUNTHER 31,638
+  [286 pcts] DISTRICT JUDGE 22nd Judicial District 2nd Division: T. Bruce BELL 51,759
+  [286 pcts] DISTRICT JUDGE 22nd Judicial District 3rd Division: Lindsay Hughes THURSTON 52,623
+  [286 pcts] DISTRICT JUDGE 22nd Judicial District 4th Division: Melissa Moore MURPHY 52,849
+  [286 pcts] DISTRICT JUDGE 22nd Judicial District 5th Division: John TACKETT 52,512
+  [286 pcts] MAYOR: Linda GORTON 67,083, David KLOIBER 27,360
+  [286 pcts] URBAN COUNTY COUNCIL AT-LARGE: Dan WU 42,435, James BROWN 38,077, Chuck ELLINGER II. 36,215, Bill FARMER JR. 34,710
+  [286 pcts] SOIL and WATER CONSERVATION DISTRICT SUPERVISORS: NO 72,704, Jessica VOIGT 42,907, CONSTITUTIONAL AMENDMENT #1 / YES 29,602, CONSTITUTIONAL AMENDMENT #2 / YES 22,490
+  [103 pcts] MAGISTRATE District 3: George BIGGERSTAFF 22,851
+  [103 pcts] CONSTABLE District 3: Edward "Eddie" SPARKS 22,684
+  [ 99 pcts] MAGISTRATE District 2: Lisa Moore FATH 21,740
+  [ 99 pcts] CONSTABLE District 2: Jim McKENZIE 23,292
+  [ 84 pcts] MAGISTRATE District 1: Rosalind BRYANT 18,904
+  [ 84 pcts] CONSTABLE District 1: Andrea WELKER 18,950
+  [ 53 pcts] FAYETTE COUNTY BOARD of EDUCATION Educational Division 4: Amanda Main FERGUSON 5,327, Stephanie Aschmann SPIRES 4,762, Matthew VIED 2,533
+  [ 51 pcts] FAYETTE COUNTY BOARD of EDUCATION Educational Division 2: Tyler MURPHY 9,080
+  [ 48 pcts] STATE SENATOR 22nd Senatorial District: Chuck EDDY 9,404, Donald DOUGLAS 7,099
+  [ 44 pcts] STATE SENATOR 12th Senatorial District: Amanda Mays BLEDSOE 10,430, Bill O'BRIEN 8,831
+  [ 44 pcts] STATE REPRESENTATIVE 76th Representative District: Ruth Ann PALUMBO 10,950
+  [ 42 pcts] STATE REPRESENTATIVE 93rd Representative District: Lamin SWANN 7,699, Kyle WHALEN 6,601
+  [ 40 pcts] STATE REPRESENTATIVE 45th Representative District: Killian TIMONEY 11,209
+  [ 39 pcts] STATE REPRESENTATIVE 79th Representative District: Chad AULL 9,215
+  [ 36 pcts] STATE REPRESENTATIVE 75th Representative District: Lindsey BURKE 8,440
+  [ 36 pcts] STATE REPRESENTATIVE 77th Representative District: George A. BROWN JR. 9,011, Terry CUNNINGHAM 2,892
+  [ 35 pcts] STATE SENATOR 28th Senatorial District: Ralph ALVARADO 271
+  [ 31 pcts] STATE SENATOR 34th Senatorial District: Susan CINTRA 6,431, Jared K. CARPENTER 6,115
+  [ 29 pcts] STATE REPRESENTATIVE 88th Representative District: Cherlynn STEVENSON 6,376, Jim COLEMAN 5,769
+  [ 29 pcts] URBAN COUNTY COUNCIL District 9: Whitney Elliott BAXTER 5,924, James J. LOMBARDI 2,953
+  [ 28 pcts] URBAN COUNTY COUNCIL District 12: Kathy PLOMIN 5,711, Raymond O. ALEXANDER 2,091
+  [ 28 pcts] URBAN COUNTY COUNCIL District 5: Liz SHEEHAN 5,956, Greg LADD 3,559
+  [ 27 pcts] URBAN COUNTY COUNCIL District 10: Dave SEVIGNY 5,142, Ross MANN 2,952
+  [ 26 pcts] URBAN COUNTY COUNCIL District 8: Fred V. BROWN 3,086, Kenya WILLIAMS 2,993, Carroll C. "Tray" HUGHES III. (W) 13
+  [ 25 pcts] URBAN COUNTY COUNCIL District 6: Denise GRAY 3,550, Charlie ROWLAND 2,873
+  [ 23 pcts] URBAN COUNTY COUNCIL District 4: Brenda MONARREZ 3,084, J. "Brack" MARQUETTE 2,557
+  [ 21 pcts] URBAN COUNTY COUNCIL District 1: Tayna FOGLE 2,802, Rahsaan BERRY 2,273
+  [ 21 pcts] URBAN COUNTY COUNCIL District 7: Preston WORLEY 4,190, Joseph HALE 1,820
+  [ 20 pcts] URBAN COUNTY COUNCIL District 2: Shayla D. LYNCH 3,151, Josh McCURN 2,954
+  [ 19 pcts] URBAN COUNTY COUNCIL District 11: Jennifer REYNOLDS 3,205, Rock DANIELS 1,291, Brittanie C. PRICE (W) 5
+  [ 19 pcts] URBAN COUNTY COUNCIL District 3: Hannah LeGRIS 3,510, Kate SAVAGE 1,960
+  [ 13 pcts] STATE REPRESENTATIVE 39th Representative District: Gwendolyn E. MITCHELL 2,820, Matt LOCKETT 2,660
+  [  7 pcts] STATE REPRESENTATIVE 73rd Representative District: D. Ryan DOTSON 1,483, Thomas Weston ADAMS III. 1,340
+
+== 2024 GENERAL: 286 precincts, 32 contests ==
+  [286 pcts] PRESIDENT and VICE PRESIDENT of the UNITED STATES: Kamala D. HARRIS / Tim WALZ 83,387, Donald J. TRUMP / J. D. VANCE 57,344, Robert F. KENNEDY JR. / Nicole SHANAHAN 1,244, Jill STEIN / Samson KPADENOU / KY 1,020
+  [286 pcts] UNITED STATES REPRESENTATIVE in CONGRESS 6th Congressional District: Randy CRAVENS 73,333, Andy BARR 69,844
+  [286 pcts] COMMONWEALTH'S ATTORNEY 22nd Judicial Circuit: Kimberly Henderson BAIRD 98,997
+  [286 pcts] CIRCUIT CLERK: Vincent RIGGS 98,553
+  [286 pcts] JUSTICE of the SUPREME COURT 5th Supreme Court District: Pamela R. GOODWINE 92,726, Erin IZZO 22,236
+  [101 pcts] STATE SENATOR 13th Senatorial District: Reggie THOMAS 34,195
+  [ 64 pcts] FAYETTE COUNTY BOARD of EDUCATION Educational Division 5: Amy GREEN 13,913, Betsy RUTHERFORD 8,896, Lynn ROCHE-PHILLIPS 3,520, SOIL and WATER CONSERVATION DISTRICT SUPERVISORS - (Vote for Four) / B. J. BENTLEY 2,846
+  [ 59 pcts] FAYETTE COUNTY BOARD of EDUCATION Educational Division 1: Monica MUNDY 10,626, Marilyn CLARK 9,742, Lynn ROCHE-PHILLIPS 5,172, SOIL and WATER CONSERVATION DISTRICT SUPERVISORS - (Vote for Four) / B. J. BENTLEY 4,304
+  [ 58 pcts] FAYETTE COUNTY BOARD of EDUCATION Educational Division 3: K. "Penny" CHRISTIAN 8,222, Isaac Charles SEBOURN 6,953, Danny Anthony EVERETT 6,610, Lynn ROCHE-PHILLIPS 1,323
+  [ 44 pcts] STATE REPRESENTATIVE 76th Representative District: Anne Gay DONWORTH 14,790
+  [ 42 pcts] STATE REPRESENTATIVE 93rd Representative District: Adrielle CAMUEL 13,264
+  [ 40 pcts] STATE REPRESENTATIVE 45th Representative District: Adam MOORE 11,953, Thomas JEFFERSON 10,482
+  [ 39 pcts] STATE REPRESENTATIVE 79th Representative District: Chad AULL 12,659
+  [ 36 pcts] STATE REPRESENTATIVE 75th Representative District: Lindsey BURKE 11,561
+  [ 36 pcts] STATE REPRESENTATIVE 77th Representative District: George A. BROWN JR. 12,808, Jason GRIFFITH 4,862
+  [ 29 pcts] STATE REPRESENTATIVE 88th Representative District: Cherlynn STEVENSON 8,839, Vanessa GROSSL 7,742
+  [ 29 pcts] URBAN COUNTY COUNCIL District 9: Whitney Elliott BAXTER 9,856
+  [ 28 pcts] URBAN COUNTY COUNCIL District 12: Hilary BOONE 7,439, Chad T. WALKER 4,208
+  [ 28 pcts] URBAN COUNTY COUNCIL District 5: Liz SHEEHAN 7,193, Meredith PRICE 4,581
+  [ 27 pcts] URBAN COUNTY COUNCIL District 10: Dave SEVIGNY 8,522
+  [ 25 pcts] URBAN COUNTY COUNCIL District 6: Denise GRAY 7,458, Bradley Charles HEMBREE (W) 40
+  [ 23 pcts] URBAN COUNTY COUNCIL District 4: Emma Lee CURTIS 4,657, Brenda MONARREZ 4,344
+  [ 23 pcts] URBAN COUNTY COUNCIL District 8: Amy BEASLEY 6,416
+  [ 21 pcts] URBAN COUNTY COUNCIL District 1: Tyler MORTON 4,487, Tayna FOGLE 3,133
+  [ 21 pcts] URBAN COUNTY COUNCIL District 7: Joseph HALE 4,733, Heather A. HADI 3,954
+  [ 20 pcts] URBAN COUNTY COUNCIL District 2: Shayla D. LYNCH 5,942, Jacques J. WIGGINTON 3,394
+  [ 17 pcts] URBAN COUNTY COUNCIL District 3: Hannah LeGRIS 5,382
+  [ 16 pcts] STATE SENATOR 27th Senatorial District: Molly Gene CRAIN 5,619, Steve WEST 3,092
+  [ 16 pcts] URBAN COUNTY COUNCIL District 11: Jennifer REYNOLDS 4,906
+  [ 13 pcts] STATE REPRESENTATIVE 39th Representative District: Ryan STANFORD 3,799, Matt LOCKETT 3,575
+  [ 11 pcts] STATE SENATOR 17th Senatorial District: Kiana FIELDS 2,924, Matt NUNN 2,109
+  [  7 pcts] STATE REPRESENTATIVE 73rd Representative District: D. Ryan DOTSON 2,089, Rory HOULIHAN 1,800
+
+== 2026 PRIMARY ==
+  [286 pcts] US SENATOR (R primary): Andy BARR 12,299, Daniel CAMERON 3,799, Anissa CATLETT 351, Valerie "Dr Val" FREDRICK 268
+  [286 pcts] US REP 6TH DIST (R primary): Ralph ALVARADO 10,449, Ryan DOTSON 3,472, Gregory George PLUCINSKI 1,474, Steve SHANNON 1,237
+  [  7 pcts] STATE REP 73RD (R primary): Daniel KONSTANTOPOULOS 313, Les YATES 223
+  [  7 pcts] STATE REP 73RD (D primary): Chelsea KIRK 525, Rory HOULIHAN 162
+  [286 pcts] US REP 6TH DIST (D primary): Zach DEMBO 13,871, Cherlynn STEVENSON 11,994, Erin PETREY 6,076, David KLOIBER 1,513
+  [286 pcts] DISTRICT JUDGE 22ND/2ND: Shannon BROOKS 27,793, Alex GARCIA 18,350, Aaron F. FALLAHI 3,123
+  [286 pcts] COUNTY JUDGE/EXECUTIVE (D primary): Mary Diane McCord HANNA 25,541, Mike PICKARD 5,669
+  [ 84 pcts] COUNTY COMMISSIONER D1 (D primary): Perry Scott GIBSON 5,529, Sean EBBITT 3,259
+  [ 84 pcts] CONSTABLE D1 (D primary): Robert MILLER 4,638, Michael A. BRUMLEY 4,184
+  [ 44 pcts] STATE REP 76TH (D primary): Anne Gay DONWORTH 3,715, Jamie PALUMBO 2,366
+  [100 pcts] COUNTY COMMISSIONER D2 (D primary): Elizabeth Ann HATFIELD 5,615, Alayne WHITE 4,470
+  [ 28 pcts] URBAN COUNTY COUNCIL DISTRICT 5: Stephenie HOELSCHER 2,943, Nicholas WOLTER 1,661, Michael McLAUGHLIN 1,365
+  [102 pcts] MAGISTRATE 3RD (D primary): Chrysanthia SEALS 7,792, Cocanut Mohammed SUHAIL 2,352
+  [102 pcts] CONSTABLE D3 (D primary): Edward "Eddie" SPARKS 5,340, Aaron C. REYNOLDS 4,435
+  [286 pcts] MAYOR: Linda GORTON 25,298, Raquel E. CARTER 15,615, Greg O'NEAL 5,073, C. E. HUFFMAN 3,978
+  [286 pcts] US SENATOR (D primary): Charles BOOKER 21,347, Amy McGRATH 9,504, Pamela STEVENSON 2,923, Dale Lewis ROMANS 1,276
