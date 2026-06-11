@@ -474,7 +474,11 @@ function App() {
 
       {/* Footer / about */}
       <footer className="bg-gray-800 text-gray-400 px-4 py-1.5 text-xs text-center">
-        Data: Fayette County Clerk precinct reports + KY Secretary of State live results, archived in-repo · Demographics: US Census 2020 ·{' '}
+        Data: Fayette County Clerk precinct reports + KY Secretary of State live results —{' '}
+        <a href="https://github.com/paul-codes-1/studious-telegram/tree/main/data-repository/elections" className="underline hover:text-white">browse the raw archive</a>{' '}
+        (canvasses, recovered 2002–2022 results, plow GPS) ·{' '}
+        <a href="https://github.com/paul-codes-1/studious-telegram/tree/main/public/data/elections" className="underline hover:text-white">parsed JSON</a>{' '}
+        · Demographics: US Census 2020 ·{' '}
         <a href="https://lexingtonky.news" className="underline hover:text-white">The Lexington Times</a>
       </footer>
     </div>
