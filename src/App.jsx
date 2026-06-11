@@ -40,11 +40,31 @@ const DEFAULT_FILTERS = {
   councilDistricts: [] // empty = all districts
 };
 
+// Restore view state from the URL query string (shareable deep links).
+// Invalid or missing params fall back to the defaults.
+function parseInitialState() {
+  const params = new URLSearchParams(window.location.search);
+  const election = ELECTIONS.some(e => e.id === params.get('election'))
+    ? params.get('election')
+    : 'p2026';
+  const mode = MODES.some(m => m.id === params.get('mode'))
+    ? params.get('mode')
+    : 'margin';
+  // Contest keys are validated against the election's ballot once its data loads
+  const contest = params.get('contest') || null;
+  const precinct = precinctData.features.find(
+    f => f.properties.code === params.get('precinct')
+  ) || null;
+  return { election, mode, contest, precinct };
+}
+
+const INITIAL_STATE = parseInitialState();
+
 function App() {
-  const [electionId, setElectionId] = useState('p2026');
-  const [contestKey, setContestKey] = useState(null);
-  const [mode, setMode] = useState('margin');
-  const [selectedPrecinct, setSelectedPrecinct] = useState(null);
+  const [electionId, setElectionId] = useState(INITIAL_STATE.election);
+  const [contestKey, setContestKey] = useState(INITIAL_STATE.contest);
+  const [mode, setMode] = useState(INITIAL_STATE.mode);
+  const [selectedPrecinct, setSelectedPrecinct] = useState(INITIAL_STATE.precinct);
   const [view, setView] = useState('map'); // 'map' or 'table'
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
@@ -111,6 +131,36 @@ function App() {
   const handleContestChange = (key) => {
     setContestKey(key);
     lastContestRef.current[electionId] = key;
+  };
+
+  // Keep the URL in sync with the current view so any map state is shareable
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set('election', electionId);
+    if (!isSwing && contestKey) params.set('contest', contestKey);
+    if (!isSwing) params.set('mode', mode);
+    if (selectedPrecinct) params.set('precinct', selectedPrecinct.properties.code);
+    window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+  }, [electionId, contestKey, mode, selectedPrecinct, isSwing]);
+
+  // Share button: copy the current deep link
+  const [copied, setCopied] = useState(false);
+  const copyTimerRef = useRef(null);
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+    } catch {
+      // Clipboard API unavailable (e.g. insecure context) — fall back to a hidden textarea
+      const textarea = document.createElement('textarea');
+      textarea.value = window.location.href;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+    setCopied(true);
+    clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
   };
 
   // Per-precinct stats for the selected contest
@@ -312,6 +362,21 @@ function App() {
             ))}
           </div>
         )}
+
+        <button
+          onClick={handleShare}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs sm:text-sm font-medium border transition-colors ${
+            copied
+              ? 'bg-green-100 text-green-700 border-green-300'
+              : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400 hover:text-gray-900'
+          }`}
+          title="Copy a link to this view"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 015.656 5.656l-1.5 1.5" />
+          </svg>
+          {copied ? 'Copied!' : 'Share'}
+        </button>
 
         {loading && <span className="text-sm text-gray-500">Loading election data…</span>}
         {loadError && <span className="text-sm text-red-600">{loadError}</span>}
